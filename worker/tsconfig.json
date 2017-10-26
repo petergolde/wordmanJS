@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+      "module": "commonjs",
+      "noImplicitReturns": true,
+      "noUnusedLocals": true,
+      "strict": true,
+      "removeComments": true,
+      "preserveConstEnums": true,
+      "sourceMap": true,
+      "target":"es5",
+      "watch":false,
+      "lib":["es2015","webworker","scripthost"],
+      "typeRoots":[]
+  }
+}

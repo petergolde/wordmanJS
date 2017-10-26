@@ -1,0 +1,41 @@
+#container {
+  width: 100%;
+  height: 100%;
+}
+
+.panel {
+  display: table;
+}
+
+.panel > div {
+  display: table-row;
+  height: 0;
+}
+
+.panel > div.fill {
+  height: auto;
+}
+
+
+/* Unimportant styles just to make the demo looks better */
+
+#container {
+  border: 3px solid magenta;
+}
+
+#cell1 {
+  background: lightblue;
+}
+
+#cell2 {
+  background: lightyellow;
+}
+
+#cell3 {
+  background: lightgreen;
+}
+
+body {
+  margin: 20px;
+  font-family: sans-serif;
+}
