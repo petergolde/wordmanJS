@@ -35,11 +35,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 $(function () {
+    $('#main').css('padding-top', $('#header').height() + 'px');
     Program.start();
 });
-$("#search_button").click(function (e) {
+$("#main_form").submit(function (e) {
     var queryText = $("#query_text").val();
     Program.findMatches(queryText);
+    e.preventDefault();
 });
 var AsyncWorker = (function () {
     function AsyncWorker(scriptUrl) {
@@ -57,6 +59,7 @@ var AsyncWorker = (function () {
             }
         });
         this.worker.addEventListener('error', function (ev) {
+            console.error("Error in web worker: " + ev);
             _this.loadWorker();
         });
     }
@@ -117,6 +120,7 @@ var Program = (function () {
                 switch (_a.label) {
                     case 0:
                         this.initWorker();
+                        this.showWordListUi();
                         $("h1").html("Loading word list.");
                         return [4, this.loadWordLists()];
                     case 1:
@@ -127,21 +131,64 @@ var Program = (function () {
             });
         });
     };
+    Program.findMatches = function (query) {
+        return __awaiter(this, void 0, void 0, function () {
+            var matchType, wordListsToSearch, matchOptions, matchResult, err_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.showAlert("Beginning search", this.yellowColor);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        matchType = this.collectMatchType();
+                        wordListsToSearch = this.collectWordLists();
+                        matchOptions = this.collectOptions();
+                        if (wordListsToSearch.length === 0) {
+                            this.showAlert("No word lists selected", this.redColor);
+                            return [2];
+                        }
+                        return [4, this.worker.execute("findMatches", query, matchType, wordListsToSearch, matchOptions)];
+                    case 2:
+                        matchResult = _a.sent();
+                        this.showAlert("Matched " + matchResult.matches.length + " words", this.greenColor);
+                        $("#results").html(matchResult.matches.join("\r\n"));
+                        return [3, 4];
+                    case 3:
+                        err_1 = _a.sent();
+                        this.showAlert("Exception occurred", this.redColor);
+                        $("#results").html("name: " + err_1.name + " message: " + err_1.message + " stack: " + err_1.stack);
+                        return [3, 4];
+                    case 4: return [2];
+                }
+            });
+        });
+    };
     Program.initWorker = function () {
         this.worker = new AsyncWorker('/worker/worker.js');
     };
     Program.loadWordLists = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var totalWords, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var totalWords, _i, _a, wl, url, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         totalWords = 0;
-                        _a = totalWords;
-                        return [4, this.loadWordListFromUrl("/Common%20words.words.txt", "Common words")];
+                        _i = 0, _a = this.builtInWordLists;
+                        _c.label = 1;
                     case 1:
-                        totalWords = _a + _b.sent();
-                        return [2, totalWords];
+                        if (!(_i < _a.length)) return [3, 4];
+                        wl = _a[_i];
+                        url = "/wordlists/" + wl.replace(/ /, "%20") + ".words.txt";
+                        _b = totalWords;
+                        return [4, this.loadWordListFromUrl(url, wl)];
+                    case 2:
+                        totalWords = _b + _c.sent();
+                        _c.label = 3;
+                    case 3:
+                        _i++;
+                        return [3, 1];
+                    case 4: return [2, totalWords];
                 }
             });
         });
@@ -156,32 +203,50 @@ var Program = (function () {
             });
         });
     };
-    Program.findMatches = function (query) {
-        return __awaiter(this, void 0, void 0, function () {
-            var matchResult, err_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        $("h1").html("Beginning search");
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4, this.worker.execute("findMatches", query, ["Common words"], { mistakes: 0, reverse: false, maxReturn: 100 })];
-                    case 2:
-                        matchResult = _a.sent();
-                        $("h1").html("Matched " + matchResult.matches.length + " words");
-                        $("#results").html(matchResult.matches.join("\r\n"));
-                        return [3, 4];
-                    case 3:
-                        err_1 = _a.sent();
-                        $("h1").html("Exception occurred: " + err_1.message);
-                        $("#results").html("name: " + err_1.name + " message: " + err_1.message + " stack: " + err_1.stack);
-                        return [3, 4];
-                    case 4: return [2];
-                }
-            });
-        });
+    Program.showWordListUi = function () {
+        var container = $("#wordlist-container");
+        container.empty();
+        for (var _i = 0, _a = this.builtInWordLists.concat(this.customWordLists); _i < _a.length; _i++) {
+            var wl = _a[_i];
+            container.append("<input type=\"checkbox\" value=\"" + wl + "\"/> " + wl + "<br />");
+        }
     };
+    Program.collectOptions = function () {
+        return {
+            reverse: $("#reverse-checkbox").prop('checked'),
+            mistakes: parseInt($("#mistakes-select").val()),
+            minLength: parseInt($("#minlength-select").val()),
+            maxLength: parseInt($("#maxlength-select").val()),
+            maxReturn: 10000
+        };
+    };
+    Program.collectWordLists = function () {
+        var wordLists = [];
+        var wordListCheckboxes = $("#wordlist-container input");
+        for (var i = 0; i < wordListCheckboxes.length; ++i) {
+            if (wordListCheckboxes.eq(i).prop('checked')) {
+                wordLists.push(wordListCheckboxes.eq(i).val());
+            }
+        }
+        return wordLists;
+    };
+    Program.collectMatchType = function () {
+        return "Pattern";
+    };
+    Program.showAlert = function (text, color) {
+        $("#message-line").html(text).css("background-color", color);
+    };
+    Program.clearAlert = function () {
+        $("#message-line").html("&nbsp;").css("background-color", "");
+    };
+    Program.greenColor = "#bbffaa";
+    Program.yellowColor = "#ffffaa";
+    Program.redColor = "#ffaaaa";
+    Program.builtInWordLists = [
+        "Common words", "ENABLE rare words", "ENABLE", "Idioms", "Kitchen Sink",
+        "Names", "NYT Crosswords", "Places", "UK advanced cryptics", "Websters New Intl"
+    ];
+    Program.customWordLists = [];
     return Program;
 }());
 //# sourceMappingURL=app.js.map

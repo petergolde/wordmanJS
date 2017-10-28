@@ -1,18 +1,52 @@
 "use strict";
 var WordList = (function () {
-    function WordList(wordFile) {
-        this.words = [];
-        var lines = wordFile.split("\n");
+    function WordList(sanitizedWordList) {
+        this.words = sanitizedWordList;
+    }
+    WordList.create = function (wordFile, sanitize) {
+        var newList = [];
+        var lines = wordFile.split("\r\n");
         for (var _i = 0, lines_1 = lines; _i < lines_1.length; _i++) {
             var line = lines_1[_i];
-            var sanitized = this.sanitize(line);
-            this.words.push(sanitized);
+            if (sanitize) {
+                line = this.sanitize(line);
+            }
+            newList.push(line);
         }
-    }
+        if (sanitize) {
+            newList = newList.sort();
+        }
+        return new WordList(newList);
+    };
+    WordList.merge = function (listsToMerge) {
+        var indices = [];
+        for (var i = 0; i < listsToMerge.length; ++i) {
+            indices[i] = 0;
+        }
+        var newList = [];
+        for (;;) {
+            var word = null;
+            for (var i = 0; i < listsToMerge.length; ++i) {
+                var newWord = null;
+                if (indices[i] < listsToMerge[i].count())
+                    newWord = listsToMerge[i].words[indices[i]];
+                if (newWord !== null && (word === null || newWord < word))
+                    word = newWord;
+            }
+            if (word === null)
+                break;
+            newList.push(word);
+            for (var i = 0; i < listsToMerge.length; ++i) {
+                if (indices[i] < listsToMerge[i].count() && word === listsToMerge[i].words[indices[i]])
+                    ++indices[i];
+            }
+        }
+        return new WordList(newList);
+    };
     WordList.prototype.count = function () {
         return this.words.length;
     };
-    WordList.prototype.sanitize = function (line) {
+    WordList.sanitize = function (line) {
         var result = "";
         for (var i = 0; i < line.length; ++i) {
             var ch = line.charAt(i).toUpperCase();
@@ -271,12 +305,11 @@ var Pattern = (function () {
         this.hasStar = regexResult.hasStar;
         this.minLength = regexResult.nonStarsFound;
         var regex = regexResult.regex;
-        var regexList;
-        regexList = [regex];
+        this.regexList = [regex];
         if (mistakes == 1) {
             for (var mistakePosition = 0; mistakePosition < this.minLength; ++mistakePosition) {
                 regexResult = this.translateToRegex(query, mistakePosition);
-                regexList.push(regexResult.regex);
+                this.regexList.push(regexResult.regex);
             }
         }
         else if (mistakes != 0) {

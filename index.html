@@ -1,13 +1,127 @@
 <html>
-    <head>
-        
-    </head>
-    <body>
-        <h1>Hello there. This is cool. Hello. This is nice.</h1>
-        <input id="query_text" type="text" width="200em">
-        <button id="search_button">Click me to search</button>
+
+<head>
+    <style>
+        #header {
+            position: fixed;
+            top: 0px;
+            background: #eee;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header">
+        <form id="main_form">
+            <h1>Hello there. This is cool. Hello. This is nice.</h1>
+            <div style="display:flex">
+                <div>
+                    <select size="8">
+                        <option value="anagram">Anagram</option>
+                        <option value="pattern">Pattern</option>
+                        <option value="build">Build</option>
+                        <option value="subword">Subword</option>
+                        <option value="superword">Superword</option>
+                        <option value="cryptogram">Cryptogram</option>
+                        <option value="insert">Insert</option>
+                        <option value="regex">RegEx</option>
+                    </select>
+                </div>
+                <div style="padding-left:20px">
+                    <div>
+                        <label>Min length: </label>
+                        <select id="minlength-select">
+                            <option value="-1">None</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Max length: </label>
+                        <select id="maxlength-select">
+                            <option value="-1">None</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <input id="reverse-checkbox" type="checkbox">
+                        <label>Reverse pattern</label>
+                    </div>
+
+                    <div>
+                        <label>Mistakes: </label>
+                        <select id="mistakes-select">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="padding-left:20px; padding-right:20px" >
+                    <div>Word lists to search:</div>
+                    <div id="wordlist-container" style="border:1px solid #888;  height: 220px; overflow-y: scroll;">
+
+                    </div>
+                </div>
+
+            </div>
+            <div>
+                <input id="query_text" type="text" style="width:80%">
+                <input type="submit" id="search_button" value="Search">
+            </div>
+        </form>
+        <div id="message-line">&nbsp;</div>
+    </div>
+
+    <div id="main">
         <pre id="results"></pre>
-        <script src="node_modules/jquery/dist/jquery.min.js"></script>
-        <script src="script/app.js"></script>
-    </body>
+    </div>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="script/app.js"></script>
+</body>
+
 </html>

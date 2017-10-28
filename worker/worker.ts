@@ -37,22 +37,49 @@ class WorkerClass
 
 class Actions extends WorkerClass {
     private wordLists: Map<string,WordList> = new Map<string, WordList>();
+    private currentWordList: WordList|null = null; 
+    private currentWordListNames: string[] = [];
 
     public async loadWordsFromUrl(url: string, name: string): Promise<number> {
         let fileContents: Response = await fetch(url);
         let text = await fileContents.text();
-        let wordList = new WordList(text);
+        let wordList = WordList.create(text, false);  // don't need to sanitize word list from URL.
         this.wordLists.set(name, wordList);
         return wordList.count();
     }
 
-    public findMatches(query: string, lists: string[], options: MatchOptions): MatchResult {
+    public findMatches(query: string, matchType: string, lists: string[], options: MatchOptions): MatchResult {
         let matcher: IMatcher = new Pattern(false);
-        let list = this.wordLists.get(lists[0]);
-        if (!list) {
-            throw new Error(`word list ${lists[0]} is not loaded`);
+        let list = this.getWordList(lists);
+        return MatchDriver.findMatches(matcher, list, query, { mistakes: 0, reverse: false, maxReturn: 10000 });
+    }
+
+    private getWordList(wordListNames: string[]): WordList
+    {
+        if (this.currentWordList !== null && this.arrayEquals(this.currentWordListNames, wordListNames)) {
+            return this.currentWordList;
         }
-        return MatchDriver.findMatches(matcher, list, query, { mistakes: 0, reverse: false, maxReturn: 100 });
+        else {
+            this.currentWordList = WordList.merge(wordListNames.filter(name => this.wordLists.has(name))
+                                                               .map((name) => <WordList> this.wordLists.get(name)));
+            this.currentWordListNames = wordListNames;
+            return this.currentWordList;                                                   
+        }
+    }
+
+    private arrayEquals<T>(a1: T[], a2:T[]): boolean
+    {
+        if (a1.length !== a2.length) {
+            return false;
+        }
+
+        for (let i = 0; i < a1.length; ++i) {
+            if (a1[i] !== a2[i]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 

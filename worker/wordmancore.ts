@@ -4,20 +4,67 @@ class WordList {
     public static aCodePoint: number = "A".charCodeAt(0);
     public static zCodePoint: number = "Z".charCodeAt(0);
 
-    public constructor(wordFile: string) {
-        this.words = [];
-        let lines: string[] = wordFile.split("\n");
+    private constructor(sanitizedWordList: string[]) {
+        this.words = sanitizedWordList;
+    }
+
+    public static create(wordFile: string, sanitize: boolean): WordList {
+        let newList = [];
+        let lines: string[] = wordFile.split("\r\n");
         for (let line of lines) {
-            let sanitized: string = this.sanitize(line);
-            this.words.push(sanitized);
+            if (sanitize) {
+                line = this.sanitize(line);
+            }
+            newList.push(line);
         }
+
+        if (sanitize) {
+            newList = newList.sort();
+        }
+
+        return new WordList(newList);
+    }
+
+    public static merge(listsToMerge: WordList[]) {
+        let indices: number[] = [];
+        for (let i = 0; i < listsToMerge.length; ++i) {
+            indices[i] = 0;
+        } 
+
+        let newList: string[] = [];
+        for (; ;) {
+            // Are there any words left?
+            // Find the smallest word.
+            let word:string|null = null;
+            for (let i = 0; i < listsToMerge.length; ++i) {
+                let newWord:string|null = null;
+                if (indices[i] < listsToMerge[i].count())
+                    newWord = listsToMerge[i].words[indices[i]];
+                if (newWord !== null && (word === null || newWord < word))
+                    word = newWord;
+            }
+
+            if (word === null)
+                break;			//Done.
+
+            // Add to the merged list.
+            newList.push(word);
+
+            // Advance indices.
+            for (let i = 0; i < listsToMerge.length; ++i) {
+                if (indices[i] < listsToMerge[i].count() && word === listsToMerge[i].words[indices[i]])
+                    ++indices[i];
+            }
+        }
+
+        return new WordList(newList);
     }
 
     public count(): number {
         return this.words.length;
     }
 
-    private sanitize(line: string): string {
+    private static sanitize(line: string): string {
         let result: string = "";
         for (var i: number = 0; i < line.length; ++i) {
             let ch: string = line.charAt(i).toUpperCase();
@@ -85,6 +132,7 @@ interface MatchOptions {
     maxLength?: number;
     maxReturn?: number;
 }
+
 class MatchDriver {
     public static findMatches(matcher: IMatcher, wordList: WordList, pattern: string, options: MatchOptions): MatchResult {
         let hitMax = false;
@@ -351,15 +399,14 @@ class Pattern implements IMatcher
         this.minLength = regexResult.nonStarsFound;
 
         let regex = regexResult.regex;
-        let regexList: RegExp[];
+        this.regexList = [regex];
 
-        regexList = [regex];
         if (mistakes == 1) {
             // Create a regex for correct, and for each possible mistake position.
             for (let mistakePosition = 0; mistakePosition < this.minLength; ++mistakePosition) 
             {
                 regexResult = this.translateToRegex(query, mistakePosition);
-                regexList.push(regexResult.regex);
+                this.regexList.push(regexResult.regex);
             }
         }
         else if (mistakes != 0) {

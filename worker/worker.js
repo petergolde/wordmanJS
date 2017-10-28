@@ -86,6 +86,8 @@ var Actions = (function (_super) {
     function Actions() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.wordLists = new Map();
+        _this.currentWordList = null;
+        _this.currentWordListNames = [];
         return _this;
     }
     Actions.prototype.loadWordsFromUrl = function (url, name) {
@@ -99,20 +101,40 @@ var Actions = (function (_super) {
                         return [4, fileContents.text()];
                     case 2:
                         text = _a.sent();
-                        wordList = new WordList(text);
+                        wordList = WordList.create(text, false);
                         this.wordLists.set(name, wordList);
                         return [2, wordList.count()];
                 }
             });
         });
     };
-    Actions.prototype.findMatches = function (query, lists, options) {
+    Actions.prototype.findMatches = function (query, matchType, lists, options) {
         var matcher = new Pattern(false);
-        var list = this.wordLists.get(lists[0]);
-        if (!list) {
-            throw new Error("word list " + lists[0] + " is not loaded");
+        var list = this.getWordList(lists);
+        return MatchDriver.findMatches(matcher, list, query, { mistakes: 0, reverse: false, maxReturn: 10000 });
+    };
+    Actions.prototype.getWordList = function (wordListNames) {
+        var _this = this;
+        if (this.currentWordList !== null && this.arrayEquals(this.currentWordListNames, wordListNames)) {
+            return this.currentWordList;
         }
-        return MatchDriver.findMatches(matcher, list, query, { mistakes: 0, reverse: false, maxReturn: 100 });
+        else {
+            this.currentWordList = WordList.merge(wordListNames.filter(function (name) { return _this.wordLists.has(name); })
+                .map(function (name) { return _this.wordLists.get(name); }));
+            this.currentWordListNames = wordListNames;
+            return this.currentWordList;
+        }
+    };
+    Actions.prototype.arrayEquals = function (a1, a2) {
+        if (a1.length !== a2.length) {
+            return false;
+        }
+        for (var i = 0; i < a1.length; ++i) {
+            if (a1[i] !== a2[i]) {
+                return false;
+            }
+        }
+        return true;
     };
     return Actions;
 }(WorkerClass));

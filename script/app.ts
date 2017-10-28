@@ -1,10 +1,12 @@
 $(function (): void {
+    $('#main').css('padding-top', $('#header').height() + 'px');
     Program.start();
 });
 
-$("#search_button").click((e) => {
-    let queryText = (<string>$("#query_text").val());
+$("#main_form").submit((e) => {
+    let queryText = <string>$("#query_text").val();
     Program.findMatches(queryText);
+    e.preventDefault();
 });
 
 class AsyncWorker {
@@ -29,7 +31,8 @@ class AsyncWorker {
         });
 
         this.worker.addEventListener('error', (ev) => {
-            // Something bad happened. Reload the worked.
+            // Something bad happened. Reload the worker.
+            console.error("Error in web worker: " + ev);
             this.loadWorker();
         });
     }
@@ -92,44 +95,126 @@ class AsyncWorker {
     }
 }
 
+
+interface MatchResult {
+    matches: string[];
+    hitMaximum: boolean;
+}
+
+interface MatchOptions {
+    reverse?: boolean;
+    mistakes?: number;
+    minLength?: number;
+    maxLength?: number;
+    maxReturn?: number;
+}
+
 class Program {
     private static worker: AsyncWorker;
 
-    static async start(): Promise<void> {
+    private static greenColor = "#bbffaa";
+    private static yellowColor = "#ffffaa";
+    private static redColor = "#ffaaaa";
+
+    public static async start(): Promise<void> {
         this.initWorker();
+        this.showWordListUi();
+
         $("h1").html("Loading word list.");
         let totalWords = await this.loadWordLists();
         $("h1").html(`Word lists loaded with ${totalWords} total words.`);
+    }
+
+
+    public static async findMatches(query: string): Promise<void> {
+        this.showAlert(`Beginning search`, this.yellowColor);
+
+        try {
+            let matchType = this.collectMatchType();
+            let wordListsToSearch = this.collectWordLists();
+            let matchOptions = this.collectOptions();
+
+            if (wordListsToSearch.length === 0) {
+                this.showAlert("No word lists selected", this.redColor);
+                return;
+            }
+
+            let matchResult = <MatchResult>await this.worker.execute("findMatches", query, matchType, wordListsToSearch, matchOptions);
+
+            this.showAlert(`Matched ${matchResult.matches.length} words`, this.greenColor);
+            $("#results").html(matchResult.matches.join("\r\n"));
+        }
+        catch (err) {
+            this.showAlert("Exception occurred", this.redColor);
+            $("#results").html(`name: ${err.name} message: ${err.message} stack: ${err.stack}`);
+        }
     }
 
     private static initWorker(): void {
         this.worker = new AsyncWorker('/worker/worker.js');
     }
 
-    static async loadWordLists(): Promise<number> {
+    private static builtInWordLists = [
+        "Common words", "ENABLE rare words", "ENABLE", "Idioms", "Kitchen Sink",
+        "Names", "NYT Crosswords", "Places", "UK advanced cryptics", "Websters New Intl"
+    ];
+
+    private static customWordLists: string[] = [];
+
+    private static async loadWordLists(): Promise<number> {
         let totalWords = 0;
-        totalWords += await this.loadWordListFromUrl("/Common%20words.words.txt", "Common words");
+        for (let wl of this.builtInWordLists) {
+            let url = "/wordlists/" + wl.replace(/ /, "%20") + ".words.txt";
+            totalWords += await this.loadWordListFromUrl(url, wl);
+        }
+
         return totalWords;
     }
 
-    static async loadWordListFromUrl(url: string, name: string): Promise<number> {
+    private static async loadWordListFromUrl(url: string, name: string): Promise<number> {
         return await this.worker.execute("loadWordsFromUrl", url, name);
     }
 
-    static async findMatches(query: string): Promise<void> {
-        $("h1").html(`Beginning search`);
-
-        try {
-
-            let matchResult = await this.worker.execute("findMatches", query, ["Common words"], { mistakes: 0, reverse: false, maxReturn: 100 });
-
-            $("h1").html(`Matched ${matchResult.matches.length} words`);
-            $("#results").html(matchResult.matches.join("\r\n"));
-        }
-        catch (err) {
-            $("h1").html("Exception occurred: " + err.message);
-            $("#results").html(`name: ${err.name} message: ${err.message} stack: ${err.stack}`);
+    private static showWordListUi(): void {
+        let container = $("#wordlist-container");
+        container.empty();
+        for (let wl of this.builtInWordLists.concat(this.customWordLists)) {
+            container.append(`<input type="checkbox" value="${wl}"/> ${wl}<br />`);
         }
     }
 
+    private static collectOptions(): MatchOptions {
+        return {
+            reverse: $("#reverse-checkbox").prop('checked'),
+            mistakes: parseInt(<string> $("#mistakes-select").val()),
+            minLength: parseInt(<string>$("#minlength-select").val()),
+            maxLength: parseInt(<string>$("#maxlength-select").val()),
+            maxReturn: 10000
+        };
+    }
+
+    private static collectWordLists(): string[] {
+        let wordLists: string[] = [];
+        let wordListCheckboxes = $("#wordlist-container input");
+        for (let i = 0; i < wordListCheckboxes.length; ++i) {
+            if (wordListCheckboxes.eq(i).prop('checked')) {
+                wordLists.push(<string> wordListCheckboxes.eq(i).val())
+            }
+        }
+
+        return wordLists;
+    }
+
+    private static collectMatchType(): string {
+        return "Pattern";
+    }
+
+    private static showAlert(text: string, color: string): void {
+        $("#message-line").html(text).css("background-color", color);
+    }
+
+    private static clearAlert(): void {
+        $("#message-line").html("&nbsp;").css("background-color", "");
+    }
 }
+
