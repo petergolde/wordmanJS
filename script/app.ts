@@ -120,9 +120,9 @@ class Program {
         this.initWorker();
         this.showWordListUi();
 
-        $("h1").html("Loading word list.");
+        this.showAlert("Loading word list.", this.yellowColor);
         let totalWords = await this.loadWordLists();
-        $("h1").html(`Word lists loaded with ${totalWords} total words.`);
+        this.showAlert(`Word lists loaded with ${totalWords} total words.`, this.greenColor);
     }
 
 

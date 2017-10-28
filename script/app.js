@@ -121,11 +121,11 @@ var Program = (function () {
                     case 0:
                         this.initWorker();
                         this.showWordListUi();
-                        $("h1").html("Loading word list.");
+                        this.showAlert("Loading word list.", this.yellowColor);
                         return [4, this.loadWordLists()];
                     case 1:
                         totalWords = _a.sent();
-                        $("h1").html("Word lists loaded with " + totalWords + " total words.");
+                        this.showAlert("Word lists loaded with " + totalWords + " total words.", this.greenColor);
                         return [2];
                 }
             });

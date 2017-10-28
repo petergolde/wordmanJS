@@ -111,7 +111,7 @@ var Actions = (function (_super) {
     Actions.prototype.findMatches = function (query, matchType, lists, options) {
         var matcher = new Pattern(false);
         var list = this.getWordList(lists);
-        return MatchDriver.findMatches(matcher, list, query, { mistakes: 0, reverse: false, maxReturn: 10000 });
+        return MatchDriver.findMatches(matcher, list, query, options);
     };
     Actions.prototype.getWordList = function (wordListNames) {
         var _this = this;

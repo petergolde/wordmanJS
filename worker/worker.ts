@@ -1,5 +1,8 @@
 importScripts('wordmancore.js');
 
+/** A helper class for Web Workers. Derive from this class and add public functions that do the web worker actions.
+ * If the functions return a Promise, that promise is used for the action.
+ */
 class WorkerClass
 {
     public constructor()
@@ -35,6 +38,7 @@ class WorkerClass
     }
 }
 
+/** The actions called by the main applications to handle WordMan searches in the background. */
 class Actions extends WorkerClass {
     private wordLists: Map<string,WordList> = new Map<string, WordList>();
     private currentWordList: WordList|null = null; 
@@ -51,7 +55,7 @@ class Actions extends WorkerClass {
     public findMatches(query: string, matchType: string, lists: string[], options: MatchOptions): MatchResult {
         let matcher: IMatcher = new Pattern(false);
         let list = this.getWordList(lists);
-        return MatchDriver.findMatches(matcher, list, query, { mistakes: 0, reverse: false, maxReturn: 10000 });
+        return MatchDriver.findMatches(matcher, list, query, options);
     }
 
     private getWordList(wordListNames: string[]): WordList
