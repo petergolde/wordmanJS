@@ -114,8 +114,17 @@ var Actions = (function (_super) {
             case "pattern":
                 matcher = new Pattern(false);
                 break;
+            case "superword":
+                matcher = new Pattern(true);
+                break;
+            case "subword":
+                matcher = new Subword();
+                break;
             case "anagram":
                 matcher = new Anagram();
+                break;
+            case "build":
+                matcher = new Build();
                 break;
             default:
                 throw new Error("Unknown matchType '" + matchType + "'");

@@ -518,4 +518,237 @@ var Anagram = (function () {
     };
     return Anagram;
 }());
+var Build = (function () {
+    function Build() {
+        this.literals = [];
+        this.classes = [];
+        this.letterCount = [];
+    }
+    Build.prototype.toString = function () {
+        return "Build";
+    };
+    Build.prototype.reverseMeaningful = function () { return false; };
+    Build.prototype.maxMistakes = function () { return 5; };
+    Build.prototype.help = function () {
+        return "Type letters to build word from.\r\n\r\n" +
+            "?\tmatches any letter\r\n" +
+            "[abc]\tmatches any one of a,b,c\r\n" +
+            "[^abc]\tmatches any but a,b,c";
+    };
+    Build.prototype.setPattern = function (pattern, mistakes) {
+        var query = MatchDriver.parseQueryText(pattern);
+        this.classes = [];
+        this.countQMark = 0;
+        this.maxLength = 0;
+        for (var i = 0; i < this.literals.length; ++i) {
+            this.literals[i] = 0;
+        }
+        for (var i = 0; i < query.length; ++i) {
+            var el = query[i];
+            if (el.kind === QueryElementKind.Letter) {
+                this.literals[MatchDriver.ordinalFromLetter(el.letter)] += 1;
+                this.maxLength += 1;
+            }
+            else if (el.kind === QueryElementKind.Wild) {
+                this.countQMark += 1;
+                this.maxLength += 1;
+            }
+            else if (el.kind == QueryElementKind.Star) {
+                throw new Error("* or @ cannot appear in a build");
+            }
+            else if (el.kind == QueryElementKind.MultiLetter) {
+                this.classes.push(el.classArray);
+                this.maxLength += 1;
+            }
+            else {
+                throw new Error("Unexpected pattern element kind");
+            }
+        }
+        this.countQMark += mistakes;
+    };
+    Build.prototype.countLetters = function (word) {
+        for (var i = 0; i < 26; ++i) {
+            this.letterCount[i] = 0;
+        }
+        for (var i = 0; i < word.length; ++i) {
+            this.letterCount[MatchDriver.ordinalFromLetter(word[i])] += 1;
+        }
+    };
+    Build.prototype.matchWildcards = function () {
+        var remaining = 0;
+        for (var c = 0; c < 26; ++c)
+            if (this.letterCount[c] > 0)
+                remaining += this.letterCount[c];
+        if (remaining > this.countQMark)
+            return false;
+        return true;
+    };
+    Build.prototype.matchClasses = function (startIndex) {
+        if (this.classes.length > startIndex) {
+            var charClass = this.classes[startIndex];
+            if (this.matchClasses(startIndex + 1))
+                return true;
+            for (var i = 0; i < 26; ++i) {
+                if (charClass[i] && this.letterCount[i] > 0) {
+                    --this.letterCount[i];
+                    if (this.matchClasses(startIndex + 1))
+                        return true;
+                    ++this.letterCount[i];
+                }
+            }
+            return false;
+        }
+        else {
+            return this.matchWildcards();
+        }
+    };
+    Build.prototype.matchLiterals = function () {
+        for (var c = 0; c < 26; ++c) {
+            if (this.literals[c] > 0) {
+                this.letterCount[c] -= this.literals[c];
+            }
+        }
+        return this.matchClasses(0);
+    };
+    Build.prototype.matchWord = function (word) {
+        var length = word.length;
+        if (length > this.maxLength)
+            return false;
+        this.countLetters(word);
+        return this.matchLiterals();
+    };
+    return Build;
+}());
+var CryptoMatch = (function () {
+    function CryptoMatch() {
+    }
+    CryptoMatch.prototype.toString = function () {
+        return "Cryptogram";
+    };
+    CryptoMatch.prototype.reverseMeaningful = function () { return true; };
+    CryptoMatch.prototype.maxMistakes = function () { return 0; };
+    CryptoMatch.prototype.help = function () {
+        return "Type a cryptogram pattern.\r\n(example: XYZZY matches PENNE)\r\n\r\n?\tmatches any letter\r\n*\tmatches zero or more letters";
+    };
+    CryptoMatch.prototype.translateToRegex = function (pattern) {
+        var query = MatchDriver.parseQueryText(pattern);
+        var builder = "";
+        var charsUsedSoFar = "";
+        for (var i = 0; i < query.length; ++i) {
+            var el = query[i];
+            if (el.kind === QueryElementKind.Letter) {
+                var c = el.letter;
+                if (charsUsedSoFar.indexOf(c) >= 0) {
+                    builder += "\\k<";
+                    builder += c;
+                    builder += ">";
+                }
+                else {
+                    builder += "(?<";
+                    builder += c;
+                    builder + ">";
+                    if (charsUsedSoFar !== "") {
+                        builder += "(?!";
+                        for (var j = 0; j < charsUsedSoFar.length; ++j) {
+                            if (j !== 0)
+                                builder += "|";
+                            builder += "\\k<";
+                            builder += charsUsedSoFar[j];
+                            builder += ">";
+                        }
+                        builder += ")";
+                    }
+                    builder += ".";
+                    builder += ")";
+                    charsUsedSoFar = charsUsedSoFar + c;
+                }
+            }
+            else if (el.kind == QueryElementKind.Wild) {
+                builder += ".";
+            }
+            else if (el.kind == QueryElementKind.Star) {
+                builder += ".*";
+            }
+            else if (el.kind == QueryElementKind.MultiLetter) {
+                throw new Error("[] not supported in crypto-pattern");
+            }
+            else {
+                throw new Error("Unexpected query element");
+            }
+        }
+        return builder;
+    };
+    CryptoMatch.prototype.setPattern = function (pattern, mistakes) {
+        var regexExpression = this.translateToRegex(pattern);
+        this.regex = new RegExp("^" + regexExpression + "$");
+    };
+    CryptoMatch.prototype.matchWord = function (word) {
+        return this.regex.test(word);
+    };
+    return CryptoMatch;
+}());
+var Subword = (function () {
+    function Subword() {
+        this.wordMasks = [];
+    }
+    Subword.prototype.toString = function () {
+        return "Subword";
+    };
+    Subword.prototype.reverseMeaningful = function () { return true; };
+    Subword.prototype.maxMistakes = function () { return 5; };
+    Subword.prototype.shelp = function () {
+        return "Type pattern to find subwords.\r\n\r\n" +
+            "?\tmatches any letter\r\n" +
+            "[abc]\tmatches any one of a,b,c\r\n" +
+            "[^abc]\tmatches any but a,b,c\r\n";
+    };
+    Subword.prototype.setPattern = function (pattern, mistakes) {
+        var query = MatchDriver.parseQueryText(pattern);
+        var maskList = [];
+        this.maxLength = 0;
+        this.mistakes = mistakes;
+        for (var i = 0; i < query.length; ++i) {
+            var el = query[i];
+            if (el.kind == QueryElementKind.Star) {
+                throw new Error("'*' or '@' is not permitted in a subword");
+            }
+            else {
+                maskList.push(el.mask);
+                ++this.maxLength;
+            }
+        }
+        this.patternMasks = maskList;
+        if (this.maxLength !== this.patternMasks.length)
+            throw new Error("Huh?");
+    };
+    Subword.prototype.encodeWord = function (word) {
+        this.wordLength = word.length;
+        for (var i = 0; i < this.wordLength; ++i) {
+            this.wordMasks[i] = MatchDriver.maskFromLetter(word[i]);
+        }
+    };
+    Subword.prototype.matchesAt = function (index) {
+        var mistakesLeft = this.mistakes;
+        for (var i = 0; i < this.wordLength; ++i) {
+            if ((this.wordMasks[i] & this.patternMasks[i + index]) == 0) {
+                if (mistakesLeft > 0)
+                    mistakesLeft -= 1;
+                else
+                    return false;
+            }
+        }
+        return true;
+    };
+    Subword.prototype.matchWord = function (word) {
+        if (word.length > this.maxLength)
+            return false;
+        this.encodeWord(word);
+        for (var index = 0; index <= this.maxLength - this.wordLength; ++index) {
+            if (this.matchesAt(index))
+                return true;
+        }
+        return false;
+    };
+    return Subword;
+}());
 //# sourceMappingURL=wordmancore.js.map

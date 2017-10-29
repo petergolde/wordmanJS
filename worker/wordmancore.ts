@@ -146,7 +146,7 @@ class MatchDriver {
         for (let word of wordlist) {
             let pat = word;
             let len = pat.length;
-            if ((options.minLength !== undefined && options.minLength > 0 && len < options.minLength) || 
+            if ((options.minLength !== undefined && options.minLength > 0 && len < options.minLength) ||
                 (options.maxLength !== undefined && options.maxLength > 0 && len > options.maxLength))
                 continue;
 
@@ -656,6 +656,316 @@ class Anagram implements IMatcher {
         this.countLetters(word);
 
         return this.matchLiterals(this.mistakes);
+    }
+}
+
+class Build implements IMatcher {
+    // Encoding of the pattern.
+    private countQMark: number;			// number of '?' in pattern
+    private maxLength: number;					// max length of matching word
+    private literals: number[] = [];				// count of number of each literal letter in pattern.
+    private classes: boolean[][] = [];		// character classes, contains bool[26].
+
+    // Temp array for encoding the current word (to avoid lots of allocation/deallocations.
+    private letterCount: number[] = [];
+
+    public toString(): string {
+        return "Build";
+    }
+
+    public reverseMeaningful(): boolean { return false; }
+
+    public maxMistakes(): number { return 5; }
+
+    public help(): string {
+        return "Type letters to build word from.\r\n\r\n" +
+            "?\tmatches any letter\r\n" +
+            "[abc]\tmatches any one of a,b,c\r\n" +
+            "[^abc]\tmatches any but a,b,c";
+    }
+
+    public setPattern(pattern: string, mistakes: number): void {
+        let query: QueryElement[] = MatchDriver.parseQueryText(pattern);
+
+        this.classes = [];
+        this.countQMark = 0;
+        this.maxLength = 0;
+        for (let i = 0; i < this.literals.length; ++i) {
+            this.literals[i] = 0;
+        }
+        for (let i = 0; i < query.length; ++i) {
+            let el: QueryElement = query[i];
+
+            if (el.kind === QueryElementKind.Letter) {
+                this.literals[MatchDriver.ordinalFromLetter(el.letter)] += 1;
+                this.maxLength += 1;
+            }
+            else if (el.kind === QueryElementKind.Wild) {
+                this.countQMark += 1;
+                this.maxLength += 1;
+            }
+            else if (el.kind == QueryElementKind.Star) {
+                throw new Error("* or @ cannot appear in a build");
+            }
+            else if (el.kind == QueryElementKind.MultiLetter) {
+                this.classes.push(el.classArray);
+                this.maxLength += 1;
+            }
+            else {
+                throw new Error("Unexpected pattern element kind");
+            }
+        }
+
+        // Mistakes are just equivalent to extra question-marks.
+        this.countQMark += mistakes;
+    }
+
+    private countLetters(word: string): void {
+        for (let i = 0; i < 26; ++i) {
+            this.letterCount[i] = 0;
+        }
+        for (let i = 0; i < word.length; ++i) {
+            this.letterCount[MatchDriver.ordinalFromLetter(word[i])] += 1;
+        }
+    }
+
+    public matchWildcards(): boolean {
+        // Count the remaining letters.
+        let remaining = 0;
+        for (let c = 0; c < 26; ++c)
+            if (this.letterCount[c] > 0)
+                remaining += this.letterCount[c];
+
+        if (remaining > this.countQMark)
+            return false;
+
+        return true;
+    }
+
+    public matchClasses(startIndex: number): boolean {
+        if (this.classes.length > startIndex) {
+            // Match the first character class.
+            let charClass: boolean[] = this.classes[startIndex];
+
+            if (this.matchClasses(startIndex + 1))
+                return true;
+
+            for (let i = 0; i < 26; ++i) {
+                if (charClass[i] && this.letterCount[i] > 0) {
+                    // possible match. Recursively check.
+                    --this.letterCount[i];
+                    if (this.matchClasses(startIndex + 1))
+                        return true;
+                    ++this.letterCount[i];
+                }
+            }
+
+            return false;
+        }
+        else {
+            return this.matchWildcards();
+        }
+    }
+
+    public matchLiterals(): boolean {
+        // Match up all the literals.
+        for (let c = 0; c < 26; ++c) {
+            if (this.literals[c] > 0) {
+                this.letterCount[c] -= this.literals[c];
+            }
+        }
+
+        return this.matchClasses(0);
+    }
+
+    public matchWord(word: string): boolean {
+        let length = word.length;
+        if (length > this.maxLength)
+            return false;
+
+        this.countLetters(word);
+
+        return this.matchLiterals();
+
+    }
+}
+
+class CryptoMatch implements IMatcher {
+    private regex: RegExp;
+
+    public toString() {
+        return "Cryptogram";
+    }
+
+    public reverseMeaningful(): boolean { return true; }
+
+    public maxMistakes(): number { return 0; }
+
+
+    public help(): string {
+        return "Type a cryptogram pattern.\r\n(example: XYZZY matches PENNE)\r\n\r\n?\tmatches any letter\r\n*\tmatches zero or more letters";
+    }
+
+    private translateToRegex(pattern: string): string {
+        let query: QueryElement[] = MatchDriver.parseQueryText(pattern);
+
+        let builder: string = "";
+        let charsUsedSoFar: string = "";
+
+        for (let i = 0; i < query.length; ++i) {
+            let el: QueryElement = query[i];
+
+            if (el.kind === QueryElementKind.Letter) {
+                let c: string = el.letter;
+
+                if (charsUsedSoFar.indexOf(c) >= 0) {
+                    // Char used already
+                    builder += "\\k<";
+                    builder += c;
+                    builder += ">";
+                }
+                else {
+                    // Char not used already.
+                    builder += "(?<";
+                    builder += c;
+                    builder + ">";
+
+                    if (charsUsedSoFar !== "") {
+                        // Don't match any character already used.
+                        builder += "(?!";  // not
+
+                        // any character not used so far
+                        for (let j = 0; j < charsUsedSoFar.length; ++j) {
+                            if (j !== 0)
+                                builder += "|";
+
+                            builder += "\\k<";
+                            builder += charsUsedSoFar[j];
+                            builder += ">";
+                        }
+
+                        builder += ")";  // end not
+                    }
+                    builder += ".";  // any character
+
+                    builder += ")";
+
+                    // add to list of characters used.
+                    charsUsedSoFar = charsUsedSoFar + c;
+                }
+            }
+            else if (el.kind == QueryElementKind.Wild) {
+                builder += ".";
+            }
+            else if (el.kind == QueryElementKind.Star) {
+                builder += ".*";
+            }
+            else if (el.kind == QueryElementKind.MultiLetter) {
+                throw new Error("[] not supported in crypto-pattern");
+            }
+            else {
+                throw new Error("Unexpected query element");
+            }
+        }
+
+        return builder;
+    }
+
+
+    public setPattern(pattern: string, mistakes: number): void {
+        let regexExpression: string = this.translateToRegex(pattern);
+        this.regex = new RegExp("^" + regexExpression + "$");
+    }
+
+    public matchWord(word: string): boolean {
+        return this.regex.test(word);
+    }
+}
+
+class Subword implements IMatcher {
+    // Encoding of the pattern.
+    private patternMasks: number[];
+    private maxLength: number;
+
+    // Number of allowed mistakes
+    private mistakes: number;
+
+    // Temp array for encoding the current word (to avoid lots of allocation/deallocations).
+    private wordMasks: number[] = [];
+    private wordLength: number;
+
+    public toString(): string {
+        return "Subword";
+    }
+
+    public reverseMeaningful(): boolean { return true; }
+
+    public maxMistakes(): number { return 5; }
+
+    public shelp(): string {
+        return "Type pattern to find subwords.\r\n\r\n" +
+            "?\tmatches any letter\r\n" +
+            "[abc]\tmatches any one of a,b,c\r\n" +
+            "[^abc]\tmatches any but a,b,c\r\n";
+    }
+
+    public setPattern(pattern: string, mistakes: number): void {
+        let query: QueryElement[] = MatchDriver.parseQueryText(pattern);
+
+        let maskList: number[] = [];
+        this.maxLength = 0;
+        this.mistakes = mistakes;
+
+        for (let i = 0; i < query.length; ++i) {
+            let el: QueryElement = query[i];
+
+            if (el.kind == QueryElementKind.Star) {
+                throw new Error("'*' or '@' is not permitted in a subword");
+            }
+            else {
+                maskList.push(el.mask);
+                ++this.maxLength;
+            }
+        }
+
+        this.patternMasks = maskList;
+        if (this.maxLength !== this.patternMasks.length)
+            throw new Error("Huh?");
+    }
+
+    private encodeWord(word: string): void {
+        this.wordLength = word.length;
+        for (let i = 0; i < this.wordLength; ++i) {
+            this.wordMasks[i] = MatchDriver.maskFromLetter(word[i]);
+        }
+    }
+
+    private matchesAt(index: number): boolean {
+        let mistakesLeft = this.mistakes;
+        for (let i = 0; i < this.wordLength; ++i) {
+            if ((this.wordMasks[i] & this.patternMasks[i + index]) == 0) {
+                if (mistakesLeft > 0)
+                    mistakesLeft -= 1;
+                else
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    public matchWord(word: string): boolean {
+        if (word.length > this.maxLength)
+            return false;
+
+        this.encodeWord(word);
+
+        for (let index = 0; index <= this.maxLength - this.wordLength; ++index) {
+            if (this.matchesAt(index))
+                return true;
+        }
+
+        return false;
     }
 }
 
