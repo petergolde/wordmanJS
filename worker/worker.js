@@ -109,7 +109,17 @@ var Actions = (function (_super) {
         });
     };
     Actions.prototype.findMatches = function (query, matchType, lists, options) {
-        var matcher = new Pattern(false);
+        var matcher;
+        switch (matchType) {
+            case "pattern":
+                matcher = new Pattern(false);
+                break;
+            case "anagram":
+                matcher = new Anagram();
+                break;
+            default:
+                throw new Error("Unknown matchType '" + matchType + "'");
+        }
         var list = this.getWordList(lists);
         return MatchDriver.findMatches(matcher, list, query, options);
     };

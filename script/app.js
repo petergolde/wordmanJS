@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 $(function () {
     $('#main').css('padding-top', $('#header').height() + 'px');
+    $("#querytype-select > option[value=pattern]").attr('selected', "true");
     Program.start();
 });
 $("#main_form").submit(function (e) {
@@ -231,7 +232,7 @@ var Program = (function () {
         return wordLists;
     };
     Program.collectMatchType = function () {
-        return "Pattern";
+        return $("#querytype-select").val();
     };
     Program.showAlert = function (text, color) {
         $("#message-line").html(text).css("background-color", color);

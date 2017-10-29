@@ -112,7 +112,8 @@ var MatchDriver = (function () {
             var word = wordlist_1[_i];
             var pat = word;
             var len = pat.length;
-            if ((options.minLength !== undefined && len < options.minLength) || (options.maxLength != undefined && len > options.maxLength))
+            if ((options.minLength !== undefined && options.minLength > 0 && len < options.minLength) ||
+                (options.maxLength !== undefined && options.maxLength > 0 && len > options.maxLength))
                 continue;
             if (options.reverse) {
                 pat = this.reverseString(pat);
@@ -197,6 +198,16 @@ var MatchDriver = (function () {
         }
         return { letterArray: bracketed, endIndex: index };
     };
+    MatchDriver.ordinalFromLetter = function (letter) {
+        var code = letter.toUpperCase().charCodeAt(0);
+        if (code < WordList.aCodePoint || code > WordList.zCodePoint) {
+            throw new Error("bad letter");
+        }
+        return code - WordList.aCodePoint;
+    };
+    MatchDriver.letterFromOrdinalf = function (ordinal) {
+        return String.fromCharCode(ordinal + WordList.aCodePoint);
+    };
     MatchDriver.maskFrom0to25 = function (i) {
         if (i < 0 || i > 25) {
             throw new Error("Bad letter index");
@@ -204,11 +215,7 @@ var MatchDriver = (function () {
         return 1 << i;
     };
     MatchDriver.maskFromLetter = function (letter) {
-        var code = letter.toUpperCase().charCodeAt(0);
-        if (code < WordList.aCodePoint || code > WordList.zCodePoint) {
-            throw new Error("bad letter");
-        }
-        return this.maskFrom0to25(code - WordList.aCodePoint);
+        return this.maskFrom0to25(this.ordinalFromLetter(letter));
     };
     MatchDriver.maskFromWildcard = function () {
         return (1 << 26) - 1;
@@ -386,5 +393,129 @@ var Pattern = (function () {
         }
     };
     return Pattern;
+}());
+var Anagram = (function () {
+    function Anagram() {
+        this.literals = [];
+        this.classes = [];
+        this.letterCount = [];
+    }
+    Anagram.prototype.toString = function () {
+        return "Anagram";
+    };
+    Anagram.prototype.reverseMeaningful = function () { return false; };
+    Anagram.prototype.maxMistakes = function () { return 5; };
+    Anagram.prototype.help = function () {
+        return "Type letters to anagram.\r\n\r\n" +
+            "?\tmatches any letter\r\n" +
+            "[abc]\tmatches any one of a,b,c\r\n" +
+            "[^abc]\tmatches any but a,b,c\r\n" +
+            "*\tmatches zero or more letters";
+    };
+    Anagram.prototype.setPattern = function (pattern, mistakes) {
+        var query = MatchDriver.parseQueryText(pattern);
+        this.countQMark = 0;
+        this.minLength = 0;
+        this.mistakes = mistakes;
+        this.hasStar = false;
+        this.classes = [];
+        for (var i = 0; i < 26; ++i) {
+            this.literals[i] = 0;
+        }
+        for (var i = 0; i < query.length; ++i) {
+            var el = query[i];
+            if (el.kind == QueryElementKind.Letter) {
+                this.literals[MatchDriver.ordinalFromLetter(el.letter)] += 1;
+                this.minLength += 1;
+            }
+            else if (el.kind == QueryElementKind.Wild) {
+                this.countQMark += 1;
+                this.minLength += 1;
+            }
+            else if (el.kind == QueryElementKind.Star) {
+                this.hasStar = true;
+            }
+            else if (el.kind == QueryElementKind.MultiLetter) {
+                this.classes.push(el.classArray);
+                this.minLength += 1;
+            }
+            else {
+                throw new Error("Unexpected query element");
+            }
+        }
+    };
+    Anagram.prototype.countLetters = function (word) {
+        for (var i = 0; i < 26; ++i)
+            this.letterCount[i] = 0;
+        for (var i = 0; i < word.length; ++i) {
+            this.letterCount[MatchDriver.ordinalFromLetter(word.charAt(i))] += 1;
+        }
+    };
+    Anagram.prototype.matchWildcards = function (mistakesLeft) {
+        var remaining = 0;
+        for (var c = 0; c < 26; ++c) {
+            remaining += this.letterCount[c];
+        }
+        remaining -= (this.mistakes - mistakesLeft);
+        if (this.hasStar) {
+            if (remaining < this.countQMark)
+                throw new Error("Letter count is goofed up somehow!");
+        }
+        else {
+            if (remaining !== this.countQMark)
+                throw new Error("Letter count is goofed up somehow!");
+        }
+        return true;
+    };
+    Anagram.prototype.matchClasses = function (startIndex, mistakesLeft) {
+        if (this.classes.length > startIndex) {
+            var charClass = this.classes[startIndex];
+            for (var i = 0; i < 26; ++i) {
+                if (charClass[i] && this.letterCount[i] >= 1) {
+                    --this.letterCount[i];
+                    if (this.matchClasses(startIndex + 1, mistakesLeft))
+                        return true;
+                    ++this.letterCount[i];
+                }
+            }
+            if (mistakesLeft > 0) {
+                if (this.matchClasses(startIndex + 1, mistakesLeft - 1))
+                    return true;
+            }
+            return false;
+        }
+        else {
+            return this.matchWildcards(mistakesLeft);
+        }
+    };
+    Anagram.prototype.matchLiterals = function (mistakesLeft) {
+        for (var c = 0; c < 26; ++c) {
+            if (this.literals[c] > 0) {
+                if (this.letterCount[c] < this.literals[c]) {
+                    if (mistakesLeft < this.literals[c] - this.letterCount[c]) {
+                        return false;
+                    }
+                    else {
+                        mistakesLeft -= this.literals[c] - this.letterCount[c];
+                        this.letterCount[c] = 0;
+                    }
+                }
+                else {
+                    this.letterCount[c] -= this.literals[c];
+                }
+            }
+        }
+        return this.matchClasses(0, mistakesLeft);
+    };
+    Anagram.prototype.matchWord = function (word) {
+        var length = word.length;
+        if (length < this.minLength)
+            return false;
+        if (!this.hasStar && length > this.minLength)
+            return false;
+        this.countLetters(word);
+        return this.matchLiterals(this.mistakes);
+    };
+    return Anagram;
 }());
 //# sourceMappingURL=wordmancore.js.map

@@ -1,5 +1,6 @@
 $(function (): void {
     $('#main').css('padding-top', $('#header').height() + 'px');
+    $("#querytype-select > option[value=pattern]").attr('selected', "true");
     Program.start();
 });
 
@@ -206,7 +207,7 @@ class Program {
     }
 
     private static collectMatchType(): string {
-        return "Pattern";
+        return <string> $("#querytype-select").val();
     }
 
     private static showAlert(text: string, color: string): void {

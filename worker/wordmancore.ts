@@ -29,15 +29,15 @@ class WordList {
         let indices: number[] = [];
         for (let i = 0; i < listsToMerge.length; ++i) {
             indices[i] = 0;
-        } 
+        }
 
         let newList: string[] = [];
         for (; ;) {
             // Are there any words left?
             // Find the smallest word.
-            let word:string|null = null;
+            let word: string | null = null;
             for (let i = 0; i < listsToMerge.length; ++i) {
-                let newWord:string|null = null;
+                let newWord: string | null = null;
                 if (indices[i] < listsToMerge[i].count())
                     newWord = listsToMerge[i].words[indices[i]];
                 if (newWord !== null && (word === null || newWord < word))
@@ -146,7 +146,8 @@ class MatchDriver {
         for (let word of wordlist) {
             let pat = word;
             let len = pat.length;
-            if ((options.minLength !== undefined && len < options.minLength) || (options.maxLength != undefined && len > options.maxLength))
+            if ((options.minLength !== undefined && options.minLength > 0 && len < options.minLength) || 
+                (options.maxLength !== undefined && options.maxLength > 0 && len > options.maxLength))
                 continue;
 
             if (options.reverse) {
@@ -247,7 +248,20 @@ class MatchDriver {
         return { letterArray: bracketed, endIndex: index };
     }
 
-    public static maskFrom0to25(i: number): number { 
+    public static ordinalFromLetter(letter: string): number {
+        let code = <number>letter.toUpperCase().charCodeAt(0);
+        if (code < WordList.aCodePoint || code > WordList.zCodePoint) {
+            throw new Error("bad letter");
+        }
+
+        return code - WordList.aCodePoint;
+    }
+
+    public static letterFromOrdinalf(ordinal: number): string {
+        return String.fromCharCode(ordinal + WordList.aCodePoint);
+    }
+
+    public static maskFrom0to25(i: number): number {
         if (i < 0 || i > 25) {
             throw new Error("Bad letter index");
         }
@@ -256,12 +270,7 @@ class MatchDriver {
     }
 
     public static maskFromLetter(letter: string): number {
-        let code = <number>letter.toUpperCase().charCodeAt(0);
-        if (code < WordList.aCodePoint || code > WordList.zCodePoint) {
-            throw new Error("bad letter");
-        }
-
-        return this.maskFrom0to25(code - WordList.aCodePoint);
+        return this.maskFrom0to25(this.ordinalFromLetter(letter));
     }
 
     public static maskFromWildcard(): number {
@@ -280,14 +289,13 @@ class MatchDriver {
     }
 }
 
-class Pattern implements IMatcher
-{
+class Pattern implements IMatcher {
     private isSuperWord: boolean;	// Pattern or superword?
 
     private usingRegex: boolean;			// If true, using the regex method
 
-	// Variables to store the pattern using the regex method
-	private regexList: RegExp[];
+    // Variables to store the pattern using the regex method
+    private regexList: RegExp[];
     private minLength: number;
     private hasStar: boolean;
 
@@ -298,32 +306,30 @@ class Pattern implements IMatcher
     // Number of allowed mistakes
     private mistakes: number;
 
-	// Temp array for encoding the current word (to avoid lots of allocation/deallocations).
-	private wordMasks: number[] = [];
-	private wordLength: number;
+    // Temp array for encoding the current word (to avoid lots of allocation/deallocations).
+    private wordMasks: number[] = [];
+    private wordLength: number;
 
-	public constructor(isSuperWord: boolean) {
+    public constructor(isSuperWord: boolean) {
         this.isSuperWord = isSuperWord;
     }
 
-	public toString(): string {
+    public toString(): string {
         return this.isSuperWord ? "Superword" : "Pattern";
     }
 
-	public reverseMeaningful(): boolean {
-        return true; 
+    public reverseMeaningful(): boolean {
+        return true;
     }
 
-	public maxMistakes(): number 
-    {
+    public maxMistakes(): number {
         if (this.isSuperWord)
             return 1;
         else
             return 5;
     }
 
-	public help(): string 
-    {
+    public help(): string {
         return (this.isSuperWord ? "Type a pattern to find superwords of.\r\n\r\n" : "Type a pattern to match, in order.\r\n\r\n") +
             "?\tmatches any letter\r\n" +
             "[abc]\tmatches any one of a,b,c\r\n" +
@@ -331,7 +337,7 @@ class Pattern implements IMatcher
             "*\tmatches zero or more letters";
     }
 
-	private translateToRegex(query: QueryElement[], mistakePosition: number) : {regex: RegExp, nonStarsFound: number, hasStar: boolean} {
+    private translateToRegex(query: QueryElement[], mistakePosition: number): { regex: RegExp, nonStarsFound: number, hasStar: boolean } {
         let builder: string = "";
 
         let hasStar = false;
@@ -388,11 +394,10 @@ class Pattern implements IMatcher
             builder += ".*";
         builder += '$';
 
-        return {regex:new RegExp(builder), nonStarsFound: nonStarsFound, hasStar: hasStar};
+        return { regex: new RegExp(builder), nonStarsFound: nonStarsFound, hasStar: hasStar };
     }
 
-	private setupRegexMethod(query: QueryElement[], mistakes: number): void
-    {
+    private setupRegexMethod(query: QueryElement[], mistakes: number): void {
         let regexResult = this.translateToRegex(query, -1);
         this.usingRegex = true;
         this.hasStar = regexResult.hasStar;
@@ -403,8 +408,7 @@ class Pattern implements IMatcher
 
         if (mistakes == 1) {
             // Create a regex for correct, and for each possible mistake position.
-            for (let mistakePosition = 0; mistakePosition < this.minLength; ++mistakePosition) 
-            {
+            for (let mistakePosition = 0; mistakePosition < this.minLength; ++mistakePosition) {
                 regexResult = this.translateToRegex(query, mistakePosition);
                 this.regexList.push(regexResult.regex);
             }
@@ -414,17 +418,15 @@ class Pattern implements IMatcher
         }
     }
 
-	private setupMaskMethod(query: QueryElement[], mistakes: number): void
-    {
+    private setupMaskMethod(query: QueryElement[], mistakes: number): void {
         this.usingRegex = false;
         this.hasStar = false;
         this.mistakes = mistakes;
-        this. minLength = query.length;
+        this.minLength = query.length;
 
         let maskList: number[] = [];
 
-        for (let i = 0; i < query.length; ++i) 
-        {
+        for (let i = 0; i < query.length; ++i) {
             let el: QueryElement = query[i];
             if (el.kind == QueryElementKind.Star)
                 throw new Error("Cannot use '*' or '@' in this query");
@@ -438,13 +440,12 @@ class Pattern implements IMatcher
         this.patternMasks = maskList;
     }
 
-	public setPattern(pattern: string, mistakes: number): void
-    {
-        let query: QueryElement[]  = MatchDriver.parseQueryText(pattern);
+    public setPattern(pattern: string, mistakes: number): void {
+        let query: QueryElement[] = MatchDriver.parseQueryText(pattern);
 
         this.hasStar = false;
         this.mistakes = mistakes;
-        for(let el of query) {
+        for (let el of query) {
             if (el.kind == QueryElementKind.Star)
                 this.hasStar = true;
         }
@@ -463,17 +464,14 @@ class Pattern implements IMatcher
         }
     }
 
-	private encodeWord(word: string): void
-    {
+    private encodeWord(word: string): void {
         this.wordLength = word.length;
-        for (let i = 0; i < this.wordLength; ++i) 
-        {
+        for (let i = 0; i < this.wordLength; ++i) {
             this.wordMasks[i] = MatchDriver.maskFromLetter(word[i]);
         }
     }
 
-	public matchWord(word: string): boolean
-    {
+    public matchWord(word: string): boolean {
         let length = word.length;
         if (length < this.minLength)
             return false;
@@ -481,8 +479,7 @@ class Pattern implements IMatcher
             return false;
 
         if (this.usingRegex) {
-            for(let regex of this.regexList)
-            {
+            for (let regex of this.regexList) {
                 if (regex.exec(word))
                     return true;
             }
@@ -493,8 +490,7 @@ class Pattern implements IMatcher
             this.encodeWord(word);
 
             let mistakesLeft = this.mistakes;
-            for (let i = 0; i < this.wordLength; ++i) 
-            {
+            for (let i = 0; i < this.wordLength; ++i) {
                 if ((this.wordMasks[i] & this.patternMasks[i]) == 0) {
                     if (mistakesLeft > 0)
                         mistakesLeft -= 1;
@@ -508,3 +504,158 @@ class Pattern implements IMatcher
         }
     }
 }
+
+class Anagram implements IMatcher {
+    // Encoding of the pattern.
+    private hasStar: boolean;			// is a star in the pattern?
+    private countQMark: number;			// number of '?' in pattern
+    private mistakes: number;			// number of allowed mistakes
+    private minLength: number;					// minimum length of matching word
+    private literals: number[] = [];				// count of number of each literal letter in pattern.
+    private classes: boolean[][] = [];		// character classes, contains bool[26].
+
+    // Temp array for encoding the current word (to avoid lots of allocation/deallocations.
+    private letterCount: number[] = [];
+
+    public toString(): string {
+        return "Anagram";
+    }
+
+    public reverseMeaningful() { return false; }
+
+    public maxMistakes() { return 5; }
+
+    public help() {
+        return "Type letters to anagram.\r\n\r\n" +
+            "?\tmatches any letter\r\n" +
+            "[abc]\tmatches any one of a,b,c\r\n" +
+            "[^abc]\tmatches any but a,b,c\r\n" +
+            "*\tmatches zero or more letters";
+    }
+
+    public setPattern(pattern: string, mistakes: number): void {
+        let query: QueryElement[] = MatchDriver.parseQueryText(pattern);
+
+        this.countQMark = 0;
+        this.minLength = 0;
+        this.mistakes = mistakes;
+        this.hasStar = false;
+        this.classes = [];
+
+        for (let i = 0; i < 26; ++i) {
+            this.literals[i] = 0;
+        }
+
+        for (let i = 0; i < query.length; ++i) {
+            let el: QueryElement = query[i];
+
+            if (el.kind == QueryElementKind.Letter) {
+                this.literals[MatchDriver.ordinalFromLetter(el.letter)] += 1;
+                this.minLength += 1;
+            }
+            else if (el.kind == QueryElementKind.Wild) {
+                this.countQMark += 1;
+                this.minLength += 1;
+            }
+            else if (el.kind == QueryElementKind.Star) {
+                this.hasStar = true;
+            }
+            else if (el.kind == QueryElementKind.MultiLetter) {
+                this.classes.push(el.classArray);
+                this.minLength += 1;
+            }
+            else {
+                throw new Error("Unexpected query element");
+            }
+        }
+    }
+
+    private countLetters(word: string): void {
+        for (let i = 0; i < 26; ++i)
+            this.letterCount[i] = 0;
+        for (let i = 0; i < word.length; ++i) {
+            this.letterCount[MatchDriver.ordinalFromLetter(word.charAt(i))] += 1;
+        }
+    }
+
+    public matchWildcards(mistakesLeft: number): boolean {
+        // Count the remaining letters.
+        let remaining = 0;
+        for (let c = 0; c < 26; ++c) {
+            remaining += this.letterCount[c];
+        }
+        remaining -= (this.mistakes - mistakesLeft);
+
+        if (this.hasStar) {
+            if (remaining < this.countQMark)
+                throw new Error("Letter count is goofed up somehow!");
+        }
+        else {
+            if (remaining !== this.countQMark)
+                throw new Error("Letter count is goofed up somehow!");
+        }
+
+        return true;
+    }
+
+    public matchClasses(startIndex: number, mistakesLeft: number): boolean {
+        if (this.classes.length > startIndex) {
+            // Match the first character class; use recursion to do the rest
+            let charClass: boolean[] = this.classes[startIndex];
+
+            for (let i = 0; i < 26; ++i) {
+                if (charClass[i] && this.letterCount[i] >= 1) {
+                    // possible match. Recursively check.
+                    --this.letterCount[i];
+                    if (this.matchClasses(startIndex + 1, mistakesLeft))
+                        return true;
+                    ++this.letterCount[i];
+                }
+            }
+            if (mistakesLeft > 0) {
+                // Possibly matches a mistake. Recursively check.
+                if (this.matchClasses(startIndex + 1, mistakesLeft - 1))
+                    return true;
+            }
+            return false;
+        }
+        else {
+            return this.matchWildcards(mistakesLeft);
+        }
+    }
+
+    public matchLiterals(mistakesLeft: number): boolean {
+        // Match up all the literals.
+        for (let c = 0; c < 26; ++c) {
+            if (this.literals[c] > 0) {
+                if (this.letterCount[c] < this.literals[c]) {
+                    if (mistakesLeft < this.literals[c] - this.letterCount[c]) {
+                        return false;
+                    }
+                    else {
+                        mistakesLeft -= this.literals[c] - this.letterCount[c];
+                        this.letterCount[c] = 0;
+                    }
+                }
+                else {
+                    this.letterCount[c] -= this.literals[c];
+                }
+            }
+        }
+
+        return this.matchClasses(0, mistakesLeft);
+    }
+
+    public matchWord(word: string): boolean {
+        let length = word.length;
+        if (length < this.minLength)
+            return false;
+        if (!this.hasStar && length > this.minLength)
+            return false;
+
+        this.countLetters(word);
+
+        return this.matchLiterals(this.mistakes);
+    }
+}
+

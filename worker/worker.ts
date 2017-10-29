@@ -53,7 +53,18 @@ class Actions extends WorkerClass {
     }
 
     public findMatches(query: string, matchType: string, lists: string[], options: MatchOptions): MatchResult {
-        let matcher: IMatcher = new Pattern(false);
+        let matcher: IMatcher;
+        switch (matchType) {
+            case "pattern": 
+                matcher = new Pattern(false);
+                break;
+            case "anagram":
+                matcher = new Anagram();
+                break;
+            default:
+                throw new Error(`Unknown matchType '${matchType}'`);
+        }
+
         let list = this.getWordList(lists);
         return MatchDriver.findMatches(matcher, list, query, options);
     }
