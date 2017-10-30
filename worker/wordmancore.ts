@@ -15,7 +15,9 @@ class WordList {
             if (sanitize) {
                 line = this.sanitize(line);
             }
-            newList.push(line);
+            if (line.length > 0) {
+                newList.push(line);
+            }
         }
 
         if (sanitize) {
@@ -257,7 +259,7 @@ class MatchDriver {
         return code - WordList.aCodePoint;
     }
 
-    public static letterFromOrdinalf(ordinal: number): string {
+    public static letterFromOrdinal(ordinal: number): string {
         return String.fromCharCode(ordinal + WordList.aCodePoint);
     }
 
@@ -690,7 +692,7 @@ class Build implements IMatcher {
         this.classes = [];
         this.countQMark = 0;
         this.maxLength = 0;
-        for (let i = 0; i < this.literals.length; ++i) {
+        for (let i = 0; i < 26; ++i) {
             this.literals[i] = 0;
         }
         for (let i = 0; i < query.length; ++i) {
@@ -820,15 +822,12 @@ class CryptoMatch implements IMatcher {
 
                 if (charsUsedSoFar.indexOf(c) >= 0) {
                     // Char used already
-                    builder += "\\k<";
-                    builder += c;
-                    builder += ">";
+                    builder += "\\";
+                    builder += (charsUsedSoFar.indexOf(c) + 1).toString(10);
                 }
                 else {
                     // Char not used already.
-                    builder += "(?<";
-                    builder += c;
-                    builder + ">";
+                    builder += "(";
 
                     if (charsUsedSoFar !== "") {
                         // Don't match any character already used.
@@ -839,9 +838,8 @@ class CryptoMatch implements IMatcher {
                             if (j !== 0)
                                 builder += "|";
 
-                            builder += "\\k<";
-                            builder += charsUsedSoFar[j];
-                            builder += ">";
+                            builder += "\\";
+                            builder += (j + 1).toString(10);
                         }
 
                         builder += ")";  // end not
@@ -966,6 +964,169 @@ class Subword implements IMatcher {
         }
 
         return false;
+    }
+}
+
+class Insertion implements IMatcher {
+    // Variables to store the regex's to match against.
+    private regexList: RegExp[];
+    private minLength: number;
+
+    // Allow a mistake?
+    private allowOneMistake: boolean;
+
+    public toString(): string {
+        return "Insert";
+    }
+
+    public reverseMeaningful(): boolean { return true; }
+
+    public maxMistakes(): number { return 1; }
+
+    public help(): string {
+        return "Type a pattern to insert consecutive letters into.\r\n\r\n" +
+            "?\tmatches any letter\r\n" +
+            "[abc]\tmatches any one of a,b,c\r\n" +
+            "[^abc]\tmatches any but a,b,c\r\n" +
+            "*\tmatches zero or more letters";
+    }
+
+    private translateToRegex(query: QueryElement[], mistakePosition: number, addPlusPosition: number): { regex: string, nonStarsFound: number } {
+        let builder: string = "";
+
+        let nonStarsFound = 0;
+
+        builder += '^';
+
+        for (let i = 0; i < query.length; ++i) {
+            let el: QueryElement = query[i];
+
+            if (el.kind == QueryElementKind.Letter) {
+                if (nonStarsFound == mistakePosition)
+                    builder += '.';
+                else
+                    builder += el.letter;
+
+                nonStarsFound += 1;
+                if (nonStarsFound == addPlusPosition)
+                    builder += ".+";
+            }
+            else if (el.kind == QueryElementKind.Wild) {
+                builder += ".";
+                nonStarsFound += 1;
+                if (nonStarsFound == addPlusPosition)
+                    builder += ".+";
+            }
+            else if (el.kind == QueryElementKind.Star) {
+                builder += ".*";
+            }
+            else if (el.kind == QueryElementKind.MultiLetter) {
+                if (nonStarsFound == mistakePosition) {
+                    builder += '.';
+                    nonStarsFound += 1;
+                }
+                else {
+                    builder += "[";
+                    for (let c = 0; c < 26; ++c) {
+                        if ((el.mask & MatchDriver.maskFrom0to25(c)) != 0) {
+                            builder += MatchDriver.letterFromOrdinal(c);
+                        }
+                    }
+                    builder += "]";
+                }
+
+                nonStarsFound += 1;
+            }
+            else {
+                throw new Error("Unexpected query element");
+            }
+        }
+
+        builder += '$';
+
+        return { regex: builder, nonStarsFound: nonStarsFound };
+    }
+
+    public setPattern(pattern: string, mistakes: number) {
+        let query: QueryElement[] = MatchDriver.parseQueryText(pattern);
+
+        let result = this.translateToRegex(query, -1, -1);
+        let minLength = result.nonStarsFound;
+        let regexString = result.regex;
+
+        if (mistakes == 1)
+            this.allowOneMistake = true;
+        else if (mistakes == 0)
+            this.allowOneMistake = false;
+        else
+            throw new Error("Insertion does not allow more than 1 mistake!");
+
+        let regex: RegExp;
+        this.regexList = [];
+
+        if (!this.allowOneMistake) {
+            try {
+                for (let addPlusPosition = 1; addPlusPosition < minLength; ++addPlusPosition) {
+                    regexString = this.translateToRegex(query, -1, addPlusPosition).regex;
+                    regex = new RegExp(regexString, 'i');
+                    this.regexList.push(regex);
+                }
+            }
+            catch (e) {
+                throw new Error(e.message);
+            }
+        }
+        else if (mistakes == 1) {
+            try {
+                for (let mistakePosition = 0; mistakePosition < minLength; ++mistakePosition) {
+                    for (let addPlusPosition = 1; addPlusPosition < minLength; ++addPlusPosition) {
+                        regexString = this.translateToRegex(query, -1, addPlusPosition).regex;
+                        regex = new RegExp(regexString, 'i');
+                        this.regexList.push(regex);
+                    }
+                }
+            }
+            catch (e) {
+                throw new Error(e.message);
+            }
+        }
+    }
+
+    public matchWord(word: string): boolean {
+        let length = word.length;
+        if (length < this.minLength)
+            return false;
+
+        for (let regex of this.regexList) {
+            if (regex.test(word))
+                return true;
+        }
+
+        return false;
+    }
+}
+
+class RegExpression implements IMatcher {
+    private regex: RegExp;
+
+    public toString(): string {
+        return "RegEx";
+    }
+
+    public reverseMeaningful(): boolean { return true; }
+
+    public maxMistakes(): number { return 0; }
+
+    public help(): string {
+        return "Type a pattern to match with Javascript regular expressions.";
+    }
+
+    public setPattern(pattern: string, mistakes: number): void {
+        this.regex = new RegExp("^" + pattern + "$", 'i');
+    }
+
+    public matchWord(word: string): boolean {
+        return this.regex.test(word);
     }
 }
 

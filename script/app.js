@@ -152,7 +152,12 @@ var Program = (function () {
                         return [4, this.worker.execute("findMatches", query, matchType, wordListsToSearch, matchOptions)];
                     case 2:
                         matchResult = _a.sent();
-                        this.showAlert("Matched " + matchResult.matches.length + " words", this.greenColor);
+                        if (matchResult.hitMaximum) {
+                            this.showAlert("Too many words found. Showing first " + matchResult.matches.length + " words.", this.yellowColor);
+                        }
+                        else {
+                            this.showAlert("Matched " + matchResult.matches.length + " words", this.greenColor);
+                        }
                         $("#results").html(matchResult.matches.join("\r\n"));
                         return [3, 4];
                     case 3:
@@ -236,9 +241,6 @@ var Program = (function () {
     };
     Program.showAlert = function (text, color) {
         $("#message-line").html(text).css("background-color", color);
-    };
-    Program.clearAlert = function () {
-        $("#message-line").html("&nbsp;").css("background-color", "");
     };
     Program.greenColor = "#bbffaa";
     Program.yellowColor = "#ffffaa";

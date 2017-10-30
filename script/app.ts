@@ -142,7 +142,12 @@ class Program {
 
             let matchResult = <MatchResult>await this.worker.execute("findMatches", query, matchType, wordListsToSearch, matchOptions);
 
-            this.showAlert(`Matched ${matchResult.matches.length} words`, this.greenColor);
+            if (matchResult.hitMaximum) {
+                this.showAlert(`Too many words found. Showing first ${matchResult.matches.length} words.`, this.yellowColor);
+            }
+            else {
+                this.showAlert(`Matched ${matchResult.matches.length} words`, this.greenColor);
+            }
             $("#results").html(matchResult.matches.join("\r\n"));
         }
         catch (err) {
@@ -214,8 +219,10 @@ class Program {
         $("#message-line").html(text).css("background-color", color);
     }
 
+    /*
     private static clearAlert(): void {
         $("#message-line").html("&nbsp;").css("background-color", "");
     }
+    */
 }
 

@@ -70,6 +70,16 @@ class Actions extends WorkerClass {
             case "build":
                 matcher = new Build();
                 break;
+            case "cryptogram":
+                matcher = new CryptoMatch();
+                break;
+            case "insert":
+                matcher = new Insertion();
+                break;
+            case "regex":
+                matcher = new RegExpression();
+                break;
+
             default:
                 throw new Error(`Unknown matchType '${matchType}'`);
         }

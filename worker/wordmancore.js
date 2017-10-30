@@ -11,7 +11,9 @@ var WordList = (function () {
             if (sanitize) {
                 line = this.sanitize(line);
             }
-            newList.push(line);
+            if (line.length > 0) {
+                newList.push(line);
+            }
         }
         if (sanitize) {
             newList = newList.sort();
@@ -205,7 +207,7 @@ var MatchDriver = (function () {
         }
         return code - WordList.aCodePoint;
     };
-    MatchDriver.letterFromOrdinalf = function (ordinal) {
+    MatchDriver.letterFromOrdinal = function (ordinal) {
         return String.fromCharCode(ordinal + WordList.aCodePoint);
     };
     MatchDriver.maskFrom0to25 = function (i) {
@@ -540,7 +542,7 @@ var Build = (function () {
         this.classes = [];
         this.countQMark = 0;
         this.maxLength = 0;
-        for (var i = 0; i < this.literals.length; ++i) {
+        for (var i = 0; i < 26; ++i) {
             this.literals[i] = 0;
         }
         for (var i = 0; i < query.length; ++i) {
@@ -639,22 +641,18 @@ var CryptoMatch = (function () {
             if (el.kind === QueryElementKind.Letter) {
                 var c = el.letter;
                 if (charsUsedSoFar.indexOf(c) >= 0) {
-                    builder += "\\k<";
-                    builder += c;
-                    builder += ">";
+                    builder += "\\";
+                    builder += (charsUsedSoFar.indexOf(c) + 1).toString(10);
                 }
                 else {
-                    builder += "(?<";
-                    builder += c;
-                    builder + ">";
+                    builder += "(";
                     if (charsUsedSoFar !== "") {
                         builder += "(?!";
                         for (var j = 0; j < charsUsedSoFar.length; ++j) {
                             if (j !== 0)
                                 builder += "|";
-                            builder += "\\k<";
-                            builder += charsUsedSoFar[j];
-                            builder += ">";
+                            builder += "\\";
+                            builder += (j + 1).toString(10);
                         }
                         builder += ")";
                     }
@@ -750,5 +748,139 @@ var Subword = (function () {
         return false;
     };
     return Subword;
+}());
+var Insertion = (function () {
+    function Insertion() {
+    }
+    Insertion.prototype.toString = function () {
+        return "Insert";
+    };
+    Insertion.prototype.reverseMeaningful = function () { return true; };
+    Insertion.prototype.maxMistakes = function () { return 1; };
+    Insertion.prototype.help = function () {
+        return "Type a pattern to insert consecutive letters into.\r\n\r\n" +
+            "?\tmatches any letter\r\n" +
+            "[abc]\tmatches any one of a,b,c\r\n" +
+            "[^abc]\tmatches any but a,b,c\r\n" +
+            "*\tmatches zero or more letters";
+    };
+    Insertion.prototype.translateToRegex = function (query, mistakePosition, addPlusPosition) {
+        var builder = "";
+        var nonStarsFound = 0;
+        builder += '^';
+        for (var i = 0; i < query.length; ++i) {
+            var el = query[i];
+            if (el.kind == QueryElementKind.Letter) {
+                if (nonStarsFound == mistakePosition)
+                    builder += '.';
+                else
+                    builder += el.letter;
+                nonStarsFound += 1;
+                if (nonStarsFound == addPlusPosition)
+                    builder += ".+";
+            }
+            else if (el.kind == QueryElementKind.Wild) {
+                builder += ".";
+                nonStarsFound += 1;
+                if (nonStarsFound == addPlusPosition)
+                    builder += ".+";
+            }
+            else if (el.kind == QueryElementKind.Star) {
+                builder += ".*";
+            }
+            else if (el.kind == QueryElementKind.MultiLetter) {
+                if (nonStarsFound == mistakePosition) {
+                    builder += '.';
+                    nonStarsFound += 1;
+                }
+                else {
+                    builder += "[";
+                    for (var c = 0; c < 26; ++c) {
+                        if ((el.mask & MatchDriver.maskFrom0to25(c)) != 0) {
+                            builder += MatchDriver.letterFromOrdinal(c);
+                        }
+                    }
+                    builder += "]";
+                }
+                nonStarsFound += 1;
+            }
+            else {
+                throw new Error("Unexpected query element");
+            }
+        }
+        builder += '$';
+        return { regex: builder, nonStarsFound: nonStarsFound };
+    };
+    Insertion.prototype.setPattern = function (pattern, mistakes) {
+        var query = MatchDriver.parseQueryText(pattern);
+        var result = this.translateToRegex(query, -1, -1);
+        var minLength = result.nonStarsFound;
+        var regexString = result.regex;
+        if (mistakes == 1)
+            this.allowOneMistake = true;
+        else if (mistakes == 0)
+            this.allowOneMistake = false;
+        else
+            throw new Error("Insertion does not allow more than 1 mistake!");
+        var regex;
+        this.regexList = [];
+        if (!this.allowOneMistake) {
+            try {
+                for (var addPlusPosition = 1; addPlusPosition < minLength; ++addPlusPosition) {
+                    regexString = this.translateToRegex(query, -1, addPlusPosition).regex;
+                    regex = new RegExp(regexString, 'i');
+                    this.regexList.push(regex);
+                }
+            }
+            catch (e) {
+                throw new Error(e.message);
+            }
+        }
+        else if (mistakes == 1) {
+            try {
+                for (var mistakePosition = 0; mistakePosition < minLength; ++mistakePosition) {
+                    for (var addPlusPosition = 1; addPlusPosition < minLength; ++addPlusPosition) {
+                        regexString = this.translateToRegex(query, -1, addPlusPosition).regex;
+                        regex = new RegExp(regexString, 'i');
+                        this.regexList.push(regex);
+                    }
+                }
+            }
+            catch (e) {
+                throw new Error(e.message);
+            }
+        }
+    };
+    Insertion.prototype.matchWord = function (word) {
+        var length = word.length;
+        if (length < this.minLength)
+            return false;
+        for (var _i = 0, _a = this.regexList; _i < _a.length; _i++) {
+            var regex = _a[_i];
+            if (regex.test(word))
+                return true;
+        }
+        return false;
+    };
+    return Insertion;
+}());
+var RegExpression = (function () {
+    function RegExpression() {
+    }
+    RegExpression.prototype.toString = function () {
+        return "RegEx";
+    };
+    RegExpression.prototype.reverseMeaningful = function () { return true; };
+    RegExpression.prototype.maxMistakes = function () { return 0; };
+    RegExpression.prototype.help = function () {
+        return "Type a pattern to match with Javascript regular expressions.";
+    };
+    RegExpression.prototype.setPattern = function (pattern, mistakes) {
+        this.regex = new RegExp("^" + pattern + "$", 'i');
+    };
+    RegExpression.prototype.matchWord = function (word) {
+        return this.regex.test(word);
+    };
+    return RegExpression;
 }());
 //# sourceMappingURL=wordmancore.js.map
