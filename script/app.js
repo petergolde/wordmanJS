@@ -116,19 +116,12 @@ var Program = (function () {
     }
     Program.start = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var totalWords;
             return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        this.initWorker();
-                        this.showWordListUi();
-                        this.showAlert("Loading word list.", this.yellowColor);
-                        return [4, this.loadWordLists()];
-                    case 1:
-                        totalWords = _a.sent();
-                        this.showAlert("Word lists loaded with " + totalWords + " total words.", this.greenColor);
-                        return [2];
-                }
+                this.initWorker();
+                this.showWordListUi();
+                this.showAlert("Loading word list.", this.yellowColor);
+                this.showAlert("Word lists loaded with " + totalWords + " total words.", this.greenColor);
+                return [2];
             });
         });
     };

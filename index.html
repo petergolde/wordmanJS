@@ -1,12 +1,115 @@
 <html>
 
 <head>
+    <!--
+        <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css" /> 
+     -->
     <style>
+        body {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-size: 0.8em;
+        }
+
         #header {
             position: fixed;
             top: 0px;
-            background: #eee;
+            background: rgb(237, 224, 241);
             width: 100%;
+            padding-top: 0.5em;
+        }
+
+
+        input,
+        textarea,
+        select,
+        button {
+            font: inherit;
+        }
+
+        .mycontrol {
+            border-radius: 4px;
+            border: 1px solid #aaa;
+        }
+
+        .minor-inset {
+            margin-left: 0.5em;
+            margin-right: 0.5em;
+        }
+
+        .mycontrol:focus {
+            border-color: #66afe9;
+            outline: 0;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+        }
+
+        .spacy {
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
+
+        select.short {
+            width: 70px;
+            height: 25px
+        }
+
+        label.short {
+            width: 100px;
+            display: inline-block;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 2px 12px;
+            margin-bottom: 0;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.42857143;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            touch-action: manipulation;
+            cursor: pointer;
+            user-select: none;
+            background-image: none;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .btn-primary {
+            color: #fff;
+            background-color: #337ab7;
+            border-color: #2e6da4;
+        }
+
+        .btn-primary:focus {
+            color: #fff;
+            background-color: #286090;
+            border-color: #122b40;
+        }
+
+        .btn-primary:hover {
+            color: #fff;
+            background-color: #286090;
+            border-color: #204d74;
+        }
+
+        .btn-success {
+            color: #fff;
+            background-color: #5cb85c;
+            border-color: #4cae4c;
+        }
+
+        .btn-success:focus {
+            color: #fff;
+            background-color: #449d44;
+            border-color: #255625;
+        }
+
+        .btn-success:hover {
+            color: #fff;
+            background-color: #449d44;
+            border-color: #398439;
         }
     </style>
 </head>
@@ -14,9 +117,9 @@
 <body>
     <div id="header">
         <form id="main_form">
-            <div style="display:flex">
-                <div>
-                    <select id="querytype-select" size="8">
+            <div style="display:flex; flex-wrap:wrap;">
+                <div class="minor-inset" style="margin-right: 20px">
+                    <select id="querytype-select" class="mycontrol" size="8" style="border-radius:0px">
                         <option value="anagram">Anagram</option>
                         <option value="pattern">Pattern</option>
                         <option value="build">Build</option>
@@ -27,10 +130,10 @@
                         <option value="regex">RegEx</option>
                     </select>
                 </div>
-                <div style="padding-left:20px">
-                    <div>
-                        <label>Min length: </label>
-                        <select id="minlength-select">
+                <div class="minor-inset" style="margin-right:20px">
+                    <div class="spacy">
+                        <label class="short">Min length: </label>
+                        <select id="minlength-select" class="mycontrol short">
                             <option value="-1">None</option>
                             <option value="1">1</option>
                             <option value="2">2</option>
@@ -55,9 +158,9 @@
                         </select>
                     </div>
 
-                    <div>
-                        <label>Max length: </label>
-                        <select id="maxlength-select">
+                    <div class="spacy">
+                        <label class="short">Max length: </label>
+                        <select id="maxlength-select" class="mycontrol short">
                             <option value="-1">None</option>
                             <option value="1">1</option>
                             <option value="2">2</option>
@@ -82,14 +185,14 @@
                         </select>
                     </div>
 
-                    <div>
-                        <input id="reverse-checkbox" type="checkbox">
+                    <div class="spacy">
+                        <input id="reverse-checkbox" type="checkbox" style="margin-left:0px">
                         <label>Reverse pattern</label>
                     </div>
 
-                    <div>
-                        <label>Mistakes: </label>
-                        <select id="mistakes-select">
+                    <div class="spacy">
+                        <label class="short">Mistakes: </label>
+                        <select id="mistakes-select" class="mycontrol short">
                             <option value="0">0</option>
                             <option value="1">1</option>
                             <option value="2">2</option>
@@ -100,16 +203,19 @@
                     </div>
                 </div>
 
-                <div style="padding-left:20px; padding-right:20px" >
-                    <div id="wordlist-container" style="border:1px solid #888;  height: 205px; overflow-y: scroll;">
+                <div class="minor-inset" style="">
+                    <div id="wordlist-container" class="mycontrol" style="border:1px solid #888; border-radius:0px; height: 195px; overflow-y: scroll; background-color:white">
 
                     </div>
                 </div>
 
             </div>
-            <div>
-                <input id="query_text" type="text" style="width:80%">
-                <input type="submit" id="search_button" value="Search">
+            <div class="minor-inset" style="display:flex; align-items:flex-end;">
+                <input id="query_text" class="mycontrol" type="text" style="width:100%;  padding: 2px; margin-right:1em  ">
+                <div style="display: flex; flex-direction:column">
+                <input class="btn btn-primary minor-inset" type="submit" id="search_button" style="margin-top: 2px" value="Search Results">
+                <input class="btn btn-success minor-inset" type="submit" id="search_button" style="margin-top:4px" value="Search Word Lists"> 
+                </div>
             </div>
         </form>
         <div id="message-line">&nbsp;</div>
@@ -118,7 +224,7 @@
     <div id="main">
         <pre id="results"></pre>
     </div>
-    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
     <script src="script/app.js"></script>
 </body>
 

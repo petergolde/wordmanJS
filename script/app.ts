@@ -122,7 +122,7 @@ class Program {
         this.showWordListUi();
 
         this.showAlert("Loading word list.", this.yellowColor);
-        let totalWords = await this.loadWordLists();
+        //let totalWords = await this.loadWordLists();
         this.showAlert(`Word lists loaded with ${totalWords} total words.`, this.greenColor);
     }
 
