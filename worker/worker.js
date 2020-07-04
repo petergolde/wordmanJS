@@ -88,6 +88,7 @@ var Actions = (function (_super) {
         _this.wordLists = new Map();
         _this.currentWordList = null;
         _this.currentWordListNames = [];
+        _this.currentMatchResults = { matches: [], hitMaximum: false };
         return _this;
     }
     Actions.prototype.loadWordsFromUrl = function (url, name) {
@@ -139,16 +140,18 @@ var Actions = (function (_super) {
                 throw new Error("Unknown matchType '" + matchType + "'");
         }
         var list = this.getWordList(lists);
-        return MatchDriver.findMatches(matcher, list, query, options);
+        this.currentMatchResults = MatchDriver.findMatches(matcher, list, query, options);
+        return this.currentMatchResults;
     };
     Actions.prototype.getWordList = function (wordListNames) {
         var _this = this;
-        if (this.currentWordList !== null && this.arrayEquals(this.currentWordListNames, wordListNames)) {
+        if (wordListNames.indexOf("current_results") < 0 && this.currentWordList !== null && this.arrayEquals(this.currentWordListNames, wordListNames)) {
             return this.currentWordList;
         }
         else {
-            this.currentWordList = WordList.merge(wordListNames.filter(function (name) { return _this.wordLists.has(name); })
-                .map(function (name) { return _this.wordLists.get(name); }));
+            var lists = wordListNames.filter(function (name) { return (name === "current_results" || _this.wordLists.has(name)); })
+                .map(function (name) { return ((name === "current_results") ? WordList.createFromArray(_this.currentMatchResults.matches, false) : _this.wordLists.get(name)); });
+            this.currentWordList = WordList.merge(lists);
             this.currentWordListNames = wordListNames;
             return this.currentWordList;
         }

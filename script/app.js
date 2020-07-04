@@ -35,7 +35,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 $(function () {
-    $('#main').css('padding-top', $('#header').height() + 'px');
     $("#querytype-select > option[value=pattern]").attr('selected', "true");
     Program.start();
 });
@@ -43,6 +42,14 @@ $("#main_form").submit(function (e) {
     var queryText = $("#query_text").val();
     Program.findMatches(queryText);
     e.preventDefault();
+});
+$("#search_results_button").click(function (e) {
+    var queryText = $("#query_text").val();
+    Program.findMatchesInCurrentResults(queryText);
+    e.preventDefault();
+});
+$(window).resize(function (e) {
+    Program.resize();
 });
 var AsyncWorker = (function () {
     function AsyncWorker(scriptUrl) {
@@ -116,18 +123,25 @@ var Program = (function () {
     }
     Program.start = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var totalWords;
             return __generator(this, function (_a) {
-                this.initWorker();
-                this.showWordListUi();
-                this.showAlert("Loading word list.", this.yellowColor);
-                this.showAlert("Word lists loaded with " + totalWords + " total words.", this.greenColor);
-                return [2];
+                switch (_a.label) {
+                    case 0:
+                        this.initWorker();
+                        this.showWordListUi();
+                        this.showAlert("Loading word list.", this.yellowColor);
+                        return [4, this.loadWordLists()];
+                    case 1:
+                        totalWords = _a.sent();
+                        this.showAlert("Word lists loaded with " + totalWords + " total words.", this.greenColor);
+                        return [2];
+                }
             });
         });
     };
-    Program.findMatches = function (query) {
+    Program.findMatchesCore = function (query, wordListsToSearch) {
         return __awaiter(this, void 0, void 0, function () {
-            var matchType, wordListsToSearch, matchOptions, matchResult, err_1;
+            var matchType, matchOptions, matchResult, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -136,7 +150,6 @@ var Program = (function () {
                     case 1:
                         _a.trys.push([1, 3, , 4]);
                         matchType = this.collectMatchType();
-                        wordListsToSearch = this.collectWordLists();
                         matchOptions = this.collectOptions();
                         if (wordListsToSearch.length === 0) {
                             this.showAlert("No word lists selected", this.redColor);
@@ -151,7 +164,8 @@ var Program = (function () {
                         else {
                             this.showAlert("Matched " + matchResult.matches.length + " words", this.greenColor);
                         }
-                        $("#results").html(matchResult.matches.join("\r\n"));
+                        this.currentResults = matchResult.matches;
+                        this.displayResultsInColumns(this.currentResults);
                         return [3, 4];
                     case 3:
                         err_1 = _a.sent();
@@ -162,6 +176,70 @@ var Program = (function () {
                 }
             });
         });
+    };
+    Program.findMatches = function (query) {
+        var wordListsToSearch = this.collectWordLists();
+        return this.findMatchesCore(query, wordListsToSearch);
+    };
+    Program.findMatchesInCurrentResults = function (query) {
+        var wordListsToSearch = ["current_results"];
+        return this.findMatchesCore(query, wordListsToSearch);
+    };
+    Program.resize = function () {
+        if (this.currentResults) {
+            this.displayResultsInColumns(this.currentResults);
+        }
+    };
+    Program.displayResultsInColumns = function (results) {
+        var maxLength = 0;
+        for (var _i = 0, results_1 = results; _i < results_1.length; _i++) {
+            var word = results_1[_i];
+            if (word.length > maxLength) {
+                maxLength = word.length;
+            }
+        }
+        var charHeight = 16;
+        var rows = Math.floor(($("#main").outerHeight() - 24) / charHeight);
+        var cols = Math.ceil(results.length / rows);
+        var wrappedText = "";
+        for (var row = 0; row < rows; ++row) {
+            for (var col = 0; col < cols; ++col) {
+                var index = col * rows + row;
+                if (index < results.length) {
+                    var word = results[index];
+                    wrappedText += word + this.padding.substr(0, maxLength + 5 - word.length);
+                }
+            }
+            wrappedText += "\r\n";
+        }
+        $("#results").html(wrappedText);
+    };
+    Program.displayResultsInRows = function (results) {
+        var maxLength = 0;
+        for (var _i = 0, results_2 = results; _i < results_2.length; _i++) {
+            var word = results_2[_i];
+            if (word.length > maxLength) {
+                maxLength = word.length;
+            }
+        }
+        var charWidth = this.getTextWidth("MONEYMONEY", "13px monospace") / 10.0;
+        var wordWidth = (maxLength + 5) * charWidth;
+        var columns = Math.floor($("#results").width() / wordWidth);
+        var col = 1;
+        var wrappedText = "";
+        for (var _a = 0, results_3 = results; _a < results_3.length; _a++) {
+            var word = results_3[_a];
+            wrappedText += word;
+            if (col == columns) {
+                wrappedText += "\r\n";
+                col = 1;
+            }
+            else {
+                wrappedText += this.padding.substr(0, maxLength + 5 - word.length);
+                ++col;
+            }
+        }
+        $("#results").html(wrappedText);
     };
     Program.initWorker = function () {
         this.worker = new AsyncWorker('/worker/worker.js');
@@ -235,9 +313,18 @@ var Program = (function () {
     Program.showAlert = function (text, color) {
         $("#message-line").html(text).css("background-color", color);
     };
+    Program.getTextWidth = function (text, font) {
+        var canvas = this.canvasCache || (this.canvasCache = document.createElement("canvas"));
+        var context = canvas.getContext("2d");
+        context.font = font;
+        var metrics = context.measureText(text);
+        return metrics.width;
+    };
     Program.greenColor = "#bbffaa";
     Program.yellowColor = "#ffffaa";
     Program.redColor = "#ffaaaa";
+    Program.currentResults = [];
+    Program.padding = "                                                                                                           ";
     Program.builtInWordLists = [
         "Common words", "ENABLE rare words", "ENABLE", "Idioms", "Kitchen Sink",
         "Names", "NYT Crosswords", "Places", "UK advanced cryptics", "Websters New Intl"

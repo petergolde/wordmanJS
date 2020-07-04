@@ -27,6 +27,24 @@ class WordList {
         return new WordList(newList);
     }
 
+    public static createFromArray(wordArray: string[], sanitize: boolean): WordList {
+        let newList = [];
+        for (let line of wordArray) {
+            if (sanitize) {
+                line = this.sanitize(line);
+            }
+            if (line.length > 0) {
+                newList.push(line);
+            }
+        }
+
+        if (sanitize) {
+            newList = newList.sort();
+        }
+
+        return new WordList(newList);
+    }
+
     public static merge(listsToMerge: WordList[]) {
         let indices: number[] = [];
         for (let i = 0; i < listsToMerge.length; ++i) {

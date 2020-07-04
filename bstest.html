@@ -2,18 +2,36 @@
 
 <head>
      
-        <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css" /> 
-     
-</head>
+        <div>
+            <p>
+                <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css" /> 
+        
+            </p>     
+    
+        </div>
+    </head>
 
 <body>
-    <p>
-        <button class="btn btn-primary">Hello</button>
-        <button class="btn btn-success">Hello</button>
-    </p>
+    <div style="display:flex; flex-direction:column; height:100%">
+        <div style="background-color: aqua">This is the header</div>
+        <pre id="x" style="background-color:blueviolet;flex:1;overflow:auto; word-break:">This is the body</pre>
+    </div>
     
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
     <script src="script/app.js"></script>
+    <script>
+    $( function() {
+        var long = "";
+        for (var i = 0; i < 100; ++i) {
+            for (var j = 0; j < 30; ++j) {
+                long += "HELLO ";
+            }
+            long += "\r\n";
+        }
+        $("#x").html(long);
+    });
+    </script>
+    
 </body>
 
 </html>

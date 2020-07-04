@@ -43,6 +43,7 @@ class Actions extends WorkerClass {
     private wordLists: Map<string,WordList> = new Map<string, WordList>();
     private currentWordList: WordList|null = null; 
     private currentWordListNames: string[] = [];
+    private currentMatchResults: MatchResult = { matches: [], hitMaximum:false};
 
     public async loadWordsFromUrl(url: string, name: string): Promise<number> {
         let fileContents: Response = await fetch(url);
@@ -85,17 +86,19 @@ class Actions extends WorkerClass {
         }
 
         let list = this.getWordList(lists);
-        return MatchDriver.findMatches(matcher, list, query, options);
+        this.currentMatchResults = MatchDriver.findMatches(matcher, list, query, options);
+        return this.currentMatchResults;
     }
 
     private getWordList(wordListNames: string[]): WordList
     {
-        if (this.currentWordList !== null && this.arrayEquals(this.currentWordListNames, wordListNames)) {
+        if (wordListNames.indexOf("current_results") < 0 && this.currentWordList !== null && this.arrayEquals(this.currentWordListNames, wordListNames)) {
             return this.currentWordList;
         }
         else {
-            this.currentWordList = WordList.merge(wordListNames.filter(name => this.wordLists.has(name))
-                                                               .map((name) => <WordList> this.wordLists.get(name)));
+            let lists: WordList[] = wordListNames.filter(name => (name === "current_results" || this.wordLists.has(name)))
+                                                 .map((name) => ((name === "current_results") ? WordList.createFromArray(this.currentMatchResults.matches, false) : <WordList> this.wordLists.get(name)));
+            this.currentWordList = WordList.merge(lists);
             this.currentWordListNames = wordListNames;
             return this.currentWordList;                                                   
         }

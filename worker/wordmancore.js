@@ -20,6 +20,22 @@ var WordList = (function () {
         }
         return new WordList(newList);
     };
+    WordList.createFromArray = function (wordArray, sanitize) {
+        var newList = [];
+        for (var _i = 0, wordArray_1 = wordArray; _i < wordArray_1.length; _i++) {
+            var line = wordArray_1[_i];
+            if (sanitize) {
+                line = this.sanitize(line);
+            }
+            if (line.length > 0) {
+                newList.push(line);
+            }
+        }
+        if (sanitize) {
+            newList = newList.sort();
+        }
+        return new WordList(newList);
+    };
     WordList.merge = function (listsToMerge) {
         var indices = [];
         for (var i = 0; i < listsToMerge.length; ++i) {

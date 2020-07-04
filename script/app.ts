@@ -1,5 +1,5 @@
 $(function (): void {
-    $('#main').css('padding-top', $('#header').height() + 'px');
+    // $('#main').css('padding-top', $('#header').height() + 'px');
     $("#querytype-select > option[value=pattern]").attr('selected', "true");
     Program.start();
 });
@@ -9,6 +9,16 @@ $("#main_form").submit((e) => {
     Program.findMatches(queryText);
     e.preventDefault();
 });
+
+$("#search_results_button").click(e => {
+    let queryText = <string>$("#query_text").val();
+    Program.findMatchesInCurrentResults(queryText);
+    e.preventDefault();
+});
+
+$(window).resize(e => {
+    Program.resize();
+})
 
 class AsyncWorker {
     private worker: Worker;
@@ -117,22 +127,23 @@ class Program {
     private static yellowColor = "#ffffaa";
     private static redColor = "#ffaaaa";
 
+    private static currentResults: string[] = [];
+
     public static async start(): Promise<void> {
         this.initWorker();
         this.showWordListUi();
 
         this.showAlert("Loading word list.", this.yellowColor);
-        //let totalWords = await this.loadWordLists();
+        let totalWords = await this.loadWordLists();
         this.showAlert(`Word lists loaded with ${totalWords} total words.`, this.greenColor);
     }
 
 
-    public static async findMatches(query: string): Promise<void> {
+    private static async findMatchesCore(query: string, wordListsToSearch: string[]): Promise<void> {
         this.showAlert(`Beginning search`, this.yellowColor);
 
         try {
             let matchType = this.collectMatchType();
-            let wordListsToSearch = this.collectWordLists();
             let matchOptions = this.collectOptions();
 
             if (wordListsToSearch.length === 0) {
@@ -148,12 +159,93 @@ class Program {
             else {
                 this.showAlert(`Matched ${matchResult.matches.length} words`, this.greenColor);
             }
-            $("#results").html(matchResult.matches.join("\r\n"));
+
+            this.currentResults = matchResult.matches;
+            this.displayResultsInColumns(this.currentResults);
         }
         catch (err) {
             this.showAlert("Exception occurred", this.redColor);
             $("#results").html(`name: ${err.name} message: ${err.message} stack: ${err.stack}`);
         }
+    }
+
+    public static findMatches(query: string): Promise<void> {
+        let wordListsToSearch = this.collectWordLists();
+        return this.findMatchesCore(query, wordListsToSearch);
+    }
+
+    public static findMatchesInCurrentResults(query: string): Promise<void> {
+        let wordListsToSearch = ["current_results"];
+        return this.findMatchesCore(query, wordListsToSearch);
+    }
+
+    public static resize()
+    {
+        if (this.currentResults) {
+            this.displayResultsInColumns(this.currentResults);
+        }
+    }
+
+    static readonly padding = "                                                                                                           ";
+
+    private static displayResultsInColumns(results: string[]): void
+    {
+        let maxLength: number = 0;
+        for (let word of results) {
+            if (word.length > maxLength) {
+                maxLength = word.length;
+            }
+        }
+
+        let charHeight = 16;
+        let rows = Math.floor((<number>$("#main").outerHeight() - 24) / charHeight);
+        let cols = Math.ceil(results.length / rows);
+        let wrappedText = "";
+
+        for (let row = 0; row < rows; ++row) {
+            for (let col = 0; col < cols; ++col) {
+                let index = col * rows + row;
+                if (index < results.length) {
+                    let word = results[index];
+                    wrappedText += word + this.padding.substr(0, maxLength + 5 - word.length);
+                    
+                }
+            }
+            wrappedText += "\r\n";
+        }
+
+        $("#results").html(wrappedText);
+    }
+
+
+    private static displayResultsInRows(results: string[]): void {
+
+        let maxLength: number = 0;
+        for (let word of results) {
+            if (word.length > maxLength) {
+                maxLength = word.length;
+            }
+        }
+
+        let charWidth = this.getTextWidth("MONEYMONEY", "13px monospace") / 10.0;
+        let wordWidth = (maxLength + 5) * charWidth;
+        let columns = Math.floor((<number>$("#results").width()) / wordWidth);
+
+        let col = 1;
+        let wrappedText = "";
+        for (let word of results) {
+            wrappedText += word;
+            if (col == columns) {
+                wrappedText += "\r\n";
+                col = 1;
+            }
+            else {
+                wrappedText += this.padding.substr(0, maxLength + 5 - word.length);
+                ++col;
+            }
+        }
+
+        $("#results").html(wrappedText);
     }
 
     private static initWorker(): void {
@@ -192,7 +284,7 @@ class Program {
     private static collectOptions(): MatchOptions {
         return {
             reverse: $("#reverse-checkbox").prop('checked'),
-            mistakes: parseInt(<string> $("#mistakes-select").val()),
+            mistakes: parseInt(<string>$("#mistakes-select").val()),
             minLength: parseInt(<string>$("#minlength-select").val()),
             maxLength: parseInt(<string>$("#maxlength-select").val()),
             maxReturn: 10000
@@ -204,7 +296,7 @@ class Program {
         let wordListCheckboxes = $("#wordlist-container input");
         for (let i = 0; i < wordListCheckboxes.length; ++i) {
             if (wordListCheckboxes.eq(i).prop('checked')) {
-                wordLists.push(<string> wordListCheckboxes.eq(i).val())
+                wordLists.push(<string>wordListCheckboxes.eq(i).val())
             }
         }
 
@@ -212,7 +304,7 @@ class Program {
     }
 
     private static collectMatchType(): string {
-        return <string> $("#querytype-select").val();
+        return <string>$("#querytype-select").val();
     }
 
     private static showAlert(text: string, color: string): void {
@@ -224,5 +316,23 @@ class Program {
         $("#message-line").html("&nbsp;").css("background-color", "");
     }
     */
+
+    /**
+     * Uses canvas.measureText to compute and return the width of the given text of given font in pixels.
+     * 
+     * @param {String} text The text to be rendered.
+     * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
+     * 
+     * @see https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
+     */
+    private static canvasCache: HTMLCanvasElement;
+    public static getTextWidth(text: string, font: string): number {
+        // re-use canvas object for better performance
+        var canvas = this.canvasCache || (this.canvasCache = document.createElement("canvas"));
+        var context = <CanvasRenderingContext2D>canvas.getContext("2d");
+        context.font = font;
+        var metrics = context.measureText(text);
+        return metrics.width;
+    }
 }
 
