@@ -10,10 +10,13 @@ class WordList {
 
     public static create(wordFile: string, sanitize: boolean): WordList {
         let newList = [];
-        let lines: string[] = wordFile.split("\r\n");
+        let lines: string[] = wordFile.split("\n");
         for (let line of lines) {
             if (sanitize) {
                 line = this.sanitize(line);
+            }
+            else if (line.endsWith('\r')) {
+                line = line.substr(0, line.length - 1);
             }
             if (line.length > 0) {
                 newList.push(line);

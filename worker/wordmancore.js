@@ -5,11 +5,14 @@ var WordList = (function () {
     }
     WordList.create = function (wordFile, sanitize) {
         var newList = [];
-        var lines = wordFile.split("\r\n");
+        var lines = wordFile.split("\n");
         for (var _i = 0, lines_1 = lines; _i < lines_1.length; _i++) {
             var line = lines_1[_i];
             if (sanitize) {
                 line = this.sanitize(line);
+            }
+            else if (line.endsWith('\r')) {
+                line = line.substr(0, line.length - 1);
             }
             if (line.length > 0) {
                 newList.push(line);
