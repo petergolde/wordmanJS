@@ -90,6 +90,9 @@ var QueryElementKind;
 var QueryElement = (function () {
     function QueryElement(kind, data) {
         this.kind = kind;
+        this.letter = "";
+        this.mask = 0;
+        this.classArray = [];
         switch (kind) {
             case QueryElementKind.Letter:
                 if (typeof data === "string") {
@@ -250,7 +253,14 @@ var MatchDriver = (function () {
 }());
 var Pattern = (function () {
     function Pattern(isSuperWord) {
+        this.usingRegex = false;
+        this.regexList = [];
+        this.minLength = 0;
+        this.hasStar = false;
+        this.patternMasks = [];
+        this.mistakes = 0;
         this.wordMasks = [];
+        this.wordLength = 0;
         this.isSuperWord = isSuperWord;
     }
     Pattern.prototype.toString = function () {
@@ -414,6 +424,10 @@ var Pattern = (function () {
 }());
 var Anagram = (function () {
     function Anagram() {
+        this.hasStar = false;
+        this.countQMark = 0;
+        this.mistakes = 0;
+        this.minLength = 0;
         this.literals = [];
         this.classes = [];
         this.letterCount = [];
@@ -538,6 +552,8 @@ var Anagram = (function () {
 }());
 var Build = (function () {
     function Build() {
+        this.countQMark = 0;
+        this.maxLength = 0;
         this.literals = [];
         this.classes = [];
         this.letterCount = [];
@@ -639,6 +655,7 @@ var Build = (function () {
 }());
 var CryptoMatch = (function () {
     function CryptoMatch() {
+        this.regex = new RegExp("");
     }
     CryptoMatch.prototype.toString = function () {
         return "Cryptogram";
@@ -703,7 +720,11 @@ var CryptoMatch = (function () {
 }());
 var Subword = (function () {
     function Subword() {
+        this.patternMasks = [];
+        this.maxLength = 0;
+        this.mistakes = 0;
         this.wordMasks = [];
+        this.wordLength = 0;
     }
     Subword.prototype.toString = function () {
         return "Subword";
@@ -767,6 +788,9 @@ var Subword = (function () {
 }());
 var Insertion = (function () {
     function Insertion() {
+        this.regexList = [];
+        this.minLength = 0;
+        this.allowOneMistake = false;
     }
     Insertion.prototype.toString = function () {
         return "Insert";
@@ -882,6 +906,7 @@ var Insertion = (function () {
 }());
 var RegExpression = (function () {
     function RegExpression() {
+        this.regex = new RegExp("");
     }
     RegExpression.prototype.toString = function () {
         return "RegEx";

@@ -10,6 +10,35 @@
             "problemMatcher": [
                 "$tsc-watch"
             ]
+        },
+        {
+            "type": "typescript",
+            "tsconfig": "script/tsconfig.json",
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "group": "build",
+            "label": "tsc: build - script/tsconfig.json"
+        },
+        {
+            "type": "typescript",
+            "tsconfig": "script/tsconfig.json",
+            "option": "watch",
+            "problemMatcher": [
+                "$tsc-watch"
+            ],
+            "group": "build",
+            "label": "tsc: watch - script/tsconfig.json"
+        },
+        {
+            "type": "typescript",
+            "tsconfig": "worker/tsconfig.json",
+            "option": "watch",
+            "problemMatcher": [
+                "$tsc-watch"
+            ],
+            "group": "build",
+            "label": "tsc: watch - worker/tsconfig.json"
         }
     ]
 }

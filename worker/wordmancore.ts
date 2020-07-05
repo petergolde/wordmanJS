@@ -112,6 +112,10 @@ class QueryElement {
 
     public constructor(kind: QueryElementKind, data?: (string | boolean[])) {
         this.kind = kind;
+        this.letter = "";
+        this.mask = 0;
+        this.classArray = [];
+
         switch (kind) {
             case QueryElementKind.Letter:
                 if (typeof data === "string") {
@@ -312,23 +316,23 @@ class MatchDriver {
 class Pattern implements IMatcher {
     private isSuperWord: boolean;	// Pattern or superword?
 
-    private usingRegex: boolean;			// If true, using the regex method
+    private usingRegex: boolean = false;			// If true, using the regex method
 
     // Variables to store the pattern using the regex method
-    private regexList: RegExp[];
-    private minLength: number;
-    private hasStar: boolean;
+    private regexList: RegExp[] = [];
+    private minLength: number = 0;
+    private hasStar: boolean = false;
 
     // Variables to stort the pattern using the mask method
     // Encoding of the pattern.
-    private patternMasks: number[];
+    private patternMasks: number[] = [];
 
     // Number of allowed mistakes
-    private mistakes: number;
+    private mistakes: number = 0;
 
     // Temp array for encoding the current word (to avoid lots of allocation/deallocations).
     private wordMasks: number[] = [];
-    private wordLength: number;
+    private wordLength: number = 0;
 
     public constructor(isSuperWord: boolean) {
         this.isSuperWord = isSuperWord;
@@ -527,10 +531,10 @@ class Pattern implements IMatcher {
 
 class Anagram implements IMatcher {
     // Encoding of the pattern.
-    private hasStar: boolean;			// is a star in the pattern?
-    private countQMark: number;			// number of '?' in pattern
-    private mistakes: number;			// number of allowed mistakes
-    private minLength: number;					// minimum length of matching word
+    private hasStar: boolean = false;			// is a star in the pattern?
+    private countQMark: number = 0;			// number of '?' in pattern
+    private mistakes: number = 0;			// number of allowed mistakes
+    private minLength: number = 0;					// minimum length of matching word
     private literals: number[] = [];				// count of number of each literal letter in pattern.
     private classes: boolean[][] = [];		// character classes, contains bool[26].
 
@@ -681,8 +685,8 @@ class Anagram implements IMatcher {
 
 class Build implements IMatcher {
     // Encoding of the pattern.
-    private countQMark: number;			// number of '?' in pattern
-    private maxLength: number;					// max length of matching word
+    private countQMark: number = 0;			// number of '?' in pattern
+    private maxLength: number = 0;					// max length of matching word
     private literals: number[] = [];				// count of number of each literal letter in pattern.
     private classes: boolean[][] = [];		// character classes, contains bool[26].
 
@@ -811,7 +815,7 @@ class Build implements IMatcher {
 }
 
 class CryptoMatch implements IMatcher {
-    private regex: RegExp;
+    private regex: RegExp = new RegExp("");
 
     public toString() {
         return "Cryptogram";
@@ -900,15 +904,15 @@ class CryptoMatch implements IMatcher {
 
 class Subword implements IMatcher {
     // Encoding of the pattern.
-    private patternMasks: number[];
-    private maxLength: number;
+    private patternMasks: number[] = [];
+    private maxLength: number = 0;
 
     // Number of allowed mistakes
-    private mistakes: number;
+    private mistakes: number = 0;
 
     // Temp array for encoding the current word (to avoid lots of allocation/deallocations).
     private wordMasks: number[] = [];
-    private wordLength: number;
+    private wordLength: number = 0;
 
     public toString(): string {
         return "Subword";
@@ -987,11 +991,11 @@ class Subword implements IMatcher {
 
 class Insertion implements IMatcher {
     // Variables to store the regex's to match against.
-    private regexList: RegExp[];
-    private minLength: number;
+    private regexList: RegExp[] = [];
+    private minLength: number = 0;
 
     // Allow a mistake?
-    private allowOneMistake: boolean;
+    private allowOneMistake: boolean = false;
 
     public toString(): string {
         return "Insert";
@@ -1125,7 +1129,7 @@ class Insertion implements IMatcher {
 }
 
 class RegExpression implements IMatcher {
-    private regex: RegExp;
+    private regex: RegExp = new RegExp("");
 
     public toString(): string {
         return "RegEx";

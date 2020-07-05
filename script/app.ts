@@ -1,3 +1,5 @@
+///<reference path="../node_modules/@types/jquery/JQuery.d.ts" />
+
 $(function (): void {
     // $('#main').css('padding-top', $('#header').height() + 'px');
     $("#querytype-select > option[value=pattern]").attr('selected', "true");
@@ -9,7 +11,7 @@ $("#main_form").submit((e) => {
     Program.findMatches(queryText);
     e.preventDefault();
 });
-
+ 
 $("#search_results_button").click(e => {
     let queryText = <string>$("#query_text").val();
     Program.findMatchesInCurrentResults(queryText);
@@ -20,7 +22,7 @@ $(window).resize(e => {
     Program.resize();
 })
 
-class AsyncWorker {
+class AsyncWorker { 
     private worker: Worker;
     private scriptUrl: string;
     private workerIsRunning: boolean;
@@ -30,7 +32,8 @@ class AsyncWorker {
     // Load the script into a web worker.
     public constructor(scriptUrl: string) {
         this.scriptUrl = scriptUrl;
-        this.loadWorker();
+        this.worker = this.loadWorker();
+        this.workerIsRunning = false;
 
         this.worker.addEventListener('message', (ev) => {
             if (ev.data.hasOwnProperty('result')) {
@@ -98,11 +101,12 @@ class AsyncWorker {
     }
 
     // Load or reload the worker.
-    private loadWorker(): void {
+    private loadWorker(): Worker {
         if (this.worker) {
             this.worker.terminate();
         }
         this.worker = new Worker(this.scriptUrl);
+        return this.worker;
     }
 }
 
@@ -217,6 +221,7 @@ class Program {
         $("#results").html(wrappedText);
     }
 
+    /*
 
     private static displayResultsInRows(results: string[]): void {
 
@@ -247,7 +252,7 @@ class Program {
 
         $("#results").html(wrappedText);
     }
-
+    */
     private static initWorker(): void {
         this.worker = new AsyncWorker('/worker/worker.js');
     }

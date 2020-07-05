@@ -1,20 +1,21 @@
 <html>
 
 <head>
-    <!--
-        <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css" /> 
-     -->
+
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css" /> 
     <style>
+
         body {
             font-family: Verdana, Geneva, Tahoma, sans-serif;
             font-size: 0.8em;
         }
 
         #header {
-            background: rgb(237, 224, 241);
+            background:#eee;
             width: 100%;
             padding-top: 0.5em;
         }
+
 
 
         input,
@@ -29,6 +30,14 @@
             border: 1px solid #aaa;
         }
 
+        .mylistbox {
+            overflow-y: auto;
+            padding-top: 2px;
+            padding-bottom: 2px;
+            padding-left: 3px;
+            padding-right: 3px;
+        }
+
         .minor-inset {
             margin-left: 0.5em;
             margin-right: 0.5em;
@@ -39,6 +48,17 @@
             outline: 0;
             -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
             box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+        }
+
+        .wordlist {
+            border:1px solid #888; 
+            border-radius:0px; 
+            height: 195px; 
+            overflow-y: auto; 
+            padding-left: 3px; 
+            padding-right: 3px; 
+            padding-top: 2px; 
+            background-color:white
         }
 
         .spacy {
@@ -55,7 +75,7 @@
             width: 100px;
             display: inline-block;
         }
-
+        <!-- 
         .btn {
             display: inline-block;
             padding: 2px 12px;
@@ -109,6 +129,7 @@
             background-color: #449d44;
             border-color: #398439;
         }
+        -->
     </style>
 </head>
 
@@ -118,8 +139,8 @@
         <div id="header">
             <form id="main_form">
                 <div style="display:flex; flex-wrap:wrap;">
-                    <div class="minor-inset" style="margin-right: 20px">
-                        <select id="querytype-select" class="mycontrol" size="8" style="border-radius:0px">
+                    <div class="minor-inset " style="margin-right: 20px">
+                        <select id="querytype-select" class="mycontrol mylistbox" size="8" style="border-radius:0px">
                             <option value="anagram">Anagram</option>
                             <option value="pattern">Pattern</option>
                             <option value="build">Build</option>
@@ -130,7 +151,7 @@
                             <option value="regex">RegEx</option>
                         </select>
                     </div>
-                    <div class="minor-inset" style="margin-right:20px">
+                    <div class="minor-inset " style="margin-right:20px">
                         <div class="spacy">
                             <label class="short">Min length: </label>
                             <select id="minlength-select" class="mycontrol short">
@@ -186,7 +207,7 @@
                         </div>
 
                         <div class="spacy">
-                            <input id="reverse-checkbox" type="checkbox" style="margin-left:0px">
+                            <input id="reverse-checkbox" type="checkbox" class="mycontrol" style="margin-left:0px">
                             <label>Reverse pattern</label>
                         </div>
 
@@ -203,8 +224,8 @@
                         </div>
                     </div>
 
-                    <div class="minor-inset" style="">
-                        <div id="wordlist-container" class="mycontrol" style="border:1px solid #888; border-radius:0px; height: 195px; overflow-y: scroll; background-color:white">
+                    <div class="minor-inset">
+                        <div id="wordlist-container" class="mycontrol wordlist">
 
                         </div>
                     </div>
@@ -226,7 +247,8 @@
         </div>
     </div>
 
-    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script/app.js"></script>
 </body>
 
