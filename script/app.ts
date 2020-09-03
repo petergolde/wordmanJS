@@ -152,6 +152,7 @@ class Program {
 
             if (wordListsToSearch.length === 0) {
                 this.showAlert("No word lists selected", this.redColor);
+                $("#search_results_button").prop("disabled", true);
                 return;
             }
 
@@ -166,10 +167,17 @@ class Program {
 
             this.currentResults = matchResult.matches;
             this.displayResultsInColumns(this.currentResults);
+            if (matchResult.matches.length > 0) {
+                $("#search_results_button").prop("disabled", false);
+            }
+            else {
+                $("#search_results_button").prop("disabled", true);
+            }
         }
         catch (err) {
             this.showAlert("Exception occurred", this.redColor);
             $("#results").html(`name: ${err.name} message: ${err.message} stack: ${err.stack}`);
+            $("#search_results_button").prop("disabled", true);
         }
     }
 
@@ -202,7 +210,7 @@ class Program {
         }
 
         let charHeight = 16;
-        let rows = Math.floor((<number>$("#main").outerHeight() - 24) / charHeight);
+        let rows = Math.floor((<number>$("#results_container").outerHeight()-16) / charHeight);
         let cols = Math.ceil(results.length / rows);
         let wrappedText = "";
 

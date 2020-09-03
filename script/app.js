@@ -156,6 +156,7 @@ var Program = (function () {
                         matchOptions = this.collectOptions();
                         if (wordListsToSearch.length === 0) {
                             this.showAlert("No word lists selected", this.redColor);
+                            $("#search_results_button").prop("disabled", true);
                             return [2];
                         }
                         return [4, this.worker.execute("findMatches", query, matchType, wordListsToSearch, matchOptions)];
@@ -169,11 +170,18 @@ var Program = (function () {
                         }
                         this.currentResults = matchResult.matches;
                         this.displayResultsInColumns(this.currentResults);
+                        if (matchResult.matches.length > 0) {
+                            $("#search_results_button").prop("disabled", false);
+                        }
+                        else {
+                            $("#search_results_button").prop("disabled", true);
+                        }
                         return [3, 4];
                     case 3:
                         err_1 = _a.sent();
                         this.showAlert("Exception occurred", this.redColor);
                         $("#results").html("name: " + err_1.name + " message: " + err_1.message + " stack: " + err_1.stack);
+                        $("#search_results_button").prop("disabled", true);
                         return [3, 4];
                     case 4: return [2];
                 }
@@ -202,7 +210,7 @@ var Program = (function () {
             }
         }
         var charHeight = 16;
-        var rows = Math.floor(($("#main").outerHeight() - 24) / charHeight);
+        var rows = Math.floor(($("#results_container").outerHeight() - 16) / charHeight);
         var cols = Math.ceil(results.length / rows);
         var wrappedText = "";
         for (var row = 0; row < rows; ++row) {
