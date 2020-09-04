@@ -3,6 +3,13 @@
         font-size: 0.8em;
     }
 
+    #banner {
+        background: #fd0;
+        font-size: 16px;
+        color: #000;
+        padding-left: 6px;
+    }
+
     #header {
         background: #eee;
         width: 100%;

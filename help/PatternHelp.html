@@ -1,0 +1,105 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>WordMan - Search Types</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+			<meta name="GENERATOR" content="Microsoft Visual Studio .NET 7.1">
+		<meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
+	</head>
+	<body>
+		<H1>WordMan Search Types</H1>
+		<H2>Anagram</H2>
+		<P>Finds all words that can be created by rearranging <STRONG>all</STRONG> of the 
+			letters in the provided pattern. You can use ? and [abc] to use multiple 
+			letters. You can use * to allow an unlimited number of extra letters to be 
+			added. For fairly obvious reasons, using more that one * has no additional 
+			effect. The order of the letters in the pattern is always irrelevant, so the 
+			"reverse pattern" check box is not available. Unless the * is used, the number 
+			of letters in the pattern is the number of letters in the result, so the word 
+			length restriction boxes are only useful if a * is used.</P>
+		<P>Examples:</P>
+		<P>ARECNIOT ==&gt; CREATION, REACTION<BR>
+			NART? ==&gt; GRANT, RANTS, TARNS, TRAIN<BR>
+			AL[BDM]I&nbsp; ==&gt; BAIL, DIAL, LAID, MAIL<BR>
+			UZI* (max length 6) ==&gt; QUIZ, UNZIP, UNZIPS, FUZING</P>
+		<H2>Pattern</H2>
+		<P>Find all words that match the letters in a pattern, in the order provided. Since 
+			order is significant, this type of search is only useful if you use one or more 
+			of the wild-card options: ? to match any letter, [ABC] to match one of a 
+			letter, or * to match zero or more letters. The pattern can be reversed if the 
+			"reverse pattern" check-box is used. This type of search is very useful for 
+			crossword-type puzzles where some of the letters are known.</P>
+		<P>Examples:</P>
+		<P>?A?T?G ==&gt; RAGTAG<BR>
+			S???[^AEIOU]B ==&gt; SUBURB, SUPERB<BR>
+			TES*ED ==&gt; TESSELLATED, TESTED, TESTIFIED</P>
+		<H2>Build</H2>
+		<P>Finds all words that can be created using some (or all) of the letters in the 
+			pattern, in any order. Build differs from Anagram in that not all of the letter 
+			need to be used. Thus, a Build query will find all the words that an Anagram 
+			query will, but may also find shorter words. ? and [ABC] type wild-cards can be 
+			used in a Build, but the * character does not make any sense. A Build will not 
+			use the same letter more than once, unless it is repeated in the pattern. 
+			Setting a minimum length is often useful in a Build, since a large number of 
+			two and three letter words are typically found.</P>
+		<P>Examples:</P>
+		<P>UGPCOE (min length 4) ==&gt; COPE, COUP, COUPE, PUCE<BR>
+			CAULFRM (min length 6) ==&gt; CANFUL, CARFUL, FULCRA<BR>
+			CCAAUULLFFRRMM (min length 6) ==&gt; ACCRUAL, ALARUM, ALULAR, ALUMNA, ... (55 
+			total)<BR>
+			?VWXYZ (min length 4) ==&gt; WAVY, WAXY</P>
+		<H2>Subword</H2>
+		<P>Finds all words that are formed from a contiguous run of letters within the 
+			given pattern. This can be useful in finding words that may be hidden in a 
+			longer sentence, only some of which are known. As with Build queries, a minimum 
+			length restriction is useful to filter out small words.</P>
+		<P>Examples:</P>
+		<P>CHEMOTHERAPY (length 4-10) ==&gt; CHEMO, MOTH, MOTHER, OTHER, THERAPY<BR>
+			F?LA?ACR??Y?RPO (min length 7) ==&gt; ACRONYM, ALACRITY</P>
+		<H2>Superword</H2>
+		<P>Finds all words that contain the pattern as a continuous run of letters within 
+			the word. This is most useful when a small number of somewhat rare letters are 
+			known. Wildcards ? and [ABC] are allowed. The * wildcard is permitted, but is 
+			not often that useful. Note that a Superword query is equivalent to a Pattern 
+			query with * added to the front and back of the pattern.</P>
+		<P>Examples:</P>
+		<P>ZVA ==&gt; MITZVAH, MITZVAHS<BR>
+			[AEO]G[TC]?[MRS] ==&gt; DOGCART, DOGCARTS, RAGTIME, RAGTIMES</P>
+        <h2>
+            Cryptogram</h2>
+        <P>
+            Finds all words that the pattern can be encoded to by a simple substitution cipher.
+            A letter can be substituted for itself, but two different letters in the pattern
+            may not map to the same letter. The * and ? wildcards are permitted. The "mistakes"
+            option is not allowed. This is most useful when a word in a cryptogram has
+            an number of repeated letters, or when the word list used is fairly small.
+        </p>
+        <p>
+            Examples:</p>
+        <P>
+            XAZXAXG&nbsp; ==&gt;&nbsp; BAOBABS, CONCOCT, REARERS<BR>
+            ABCABC&nbsp; ==&gt;&nbsp; TSETSE, BONBON, ...&nbsp; (but not BOOBOO)<br />
+            *BB*AA*BB*&nbsp; ==&gt;&nbsp; MILLENNIALLY, MISSHAPENNESS, ...</p>
+		<H2>
+            Insert</H2><P>
+            Finds all words that can be created by inserting one or more <em>consecutive</em>
+            letters somewhere inside the given pattern. The *, ?, and [ABC] wildcards are permitted.
+            This query type is useful for solving cryptic crossword clues with insertions. &nbsp;</p>
+        <p>
+            Examples:</p>
+        <P>
+            STEAM&nbsp; ==&gt;&nbsp; STREAM, STEREOGRAM, STEADICAM</p>
+        <h2>
+            RegEx</h2>
+		<P>A RegEx query finds all words that match a JavaScript
+				 regular expression pattern. Although the other query types are 
+			the most useful, there are occasional problems that can be solved using regular 
+			expression that the other query types cannot do.
+		</P>
+		<P>For example, to find all words that start and end with the same digraph 
+			(two-letter pair), separated by one or more vowels:<BR>
+			&nbsp;&nbsp;&nbsp; (..)[AEIOU]+\1 ==&gt; CAECA, MIAMI, ONION, SEISE, SHEESH, 
+			SHUSH</P>
+		<P>&nbsp;</P>
+	</body>
+</html>
