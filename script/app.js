@@ -38,19 +38,22 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 $(function () {
     $("#querytype-select > option[value=pattern]").attr('selected', "true");
     Program.start();
-});
-$("#main_form").submit(function (e) {
-    var queryText = $("#query_text").val();
-    Program.findMatches(queryText);
-    e.preventDefault();
-});
-$("#search_results_button").click(function (e) {
-    var queryText = $("#query_text").val();
-    Program.findMatchesInCurrentResults(queryText);
-    e.preventDefault();
-});
-$(window).resize(function (e) {
-    Program.resize();
+    $("#main_form").submit(function (e) {
+        var queryText = $("#query_text").val();
+        Program.findMatches(queryText);
+        e.preventDefault();
+    });
+    $("#search_results_button").click(function (e) {
+        var queryText = $("#query_text").val();
+        Program.findMatchesInCurrentResults(queryText);
+        e.preventDefault();
+    });
+    $("#back_button").click(function (e) {
+        Program.backButtonClicked();
+    });
+    $(window).resize(function (e) {
+        Program.resize();
+    });
 });
 var AsyncWorker = (function () {
     function AsyncWorker(scriptUrl) {
@@ -80,7 +83,7 @@ var AsyncWorker = (function () {
             args[_i - 1] = arguments[_i];
         }
         if (this.workerIsRunning) {
-            throw new Error("Cannot execute new work while the working is busy.");
+            throw new Error("Cannot execute new work while the worker is busy.");
         }
         this.workerIsRunning = true;
         this.workerMethodId += 1;
@@ -142,6 +145,19 @@ var Program = (function () {
             });
         });
     };
+    Program.backButtonClicked = function () {
+        this.showResults(false);
+    };
+    Program.showResults = function (showResults) {
+        if (showResults) {
+            $("#results_pane").addClass("show-results");
+            $("#header").removeClass("show-header");
+        }
+        else {
+            $("#results_pane").removeClass("show-results");
+            $("#header").addClass("show-header");
+        }
+    };
     Program.findMatchesCore = function (query, wordListsToSearch) {
         return __awaiter(this, void 0, void 0, function () {
             var matchType, matchOptions, matchResult, err_1;
@@ -159,6 +175,7 @@ var Program = (function () {
                             $("#search_results_button").prop("disabled", true);
                             return [2];
                         }
+                        this.showResults(true);
                         return [4, this.worker.execute("findMatches", query, matchType, wordListsToSearch, matchOptions)];
                     case 2:
                         matchResult = _a.sent();
@@ -169,7 +186,7 @@ var Program = (function () {
                             this.showAlert("Matched " + matchResult.matches.length + " words", this.greenColor);
                         }
                         this.currentResults = matchResult.matches;
-                        this.displayResultsInColumns(this.currentResults);
+                        this.displayResults(this.currentResults);
                         if (matchResult.matches.length > 0) {
                             $("#search_results_button").prop("disabled", false);
                         }
@@ -198,7 +215,7 @@ var Program = (function () {
     };
     Program.resize = function () {
         if (this.currentResults) {
-            this.displayResultsInColumns(this.currentResults);
+            this.displayResults(this.currentResults);
         }
     };
     Program.displayResultsInColumns = function (results) {
@@ -224,6 +241,23 @@ var Program = (function () {
             wrappedText += "\r\n";
         }
         $("#results").html(wrappedText);
+    };
+    Program.displayResultsInRows = function (results) {
+        var wrappedText = "";
+        for (var _i = 0, results_2 = results; _i < results_2.length; _i++) {
+            var word = results_2[_i];
+            wrappedText += word;
+            wrappedText += "\r\n";
+        }
+        $("#results").html(wrappedText);
+    };
+    Program.displayResults = function (results) {
+        if ($("#back_bar").css("display") == "none") {
+            this.displayResultsInColumns(results);
+        }
+        else {
+            this.displayResultsInRows(results);
+        }
     };
     Program.initWorker = function () {
         this.worker = new AsyncWorker('/worker/worker.js');

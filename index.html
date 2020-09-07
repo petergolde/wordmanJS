@@ -12,16 +12,17 @@
 
 <body>
     <div id="entire_window">
-        <div id="banner">
-            Never fear, WordMan is here! (<a target="_blank" href="help/GeneralHelp.html">Help</a>)
-        </div>
-        <div id="header">
+
+        <div id="header" class="show-header">
+            <div id="banner">
+                Never fear, WordMan is here! (<a target="_blank" href="help/GeneralHelp.html">Help</a>)
+            </div>            
             <form id="main_form">
                 <div style="display:flex; flex-wrap:wrap;">
                     <div class="minor-inset sep-right" >
                         <select id="querytype-select" class="mycontrol mylistbox" size="8" style="border-radius:0px">
                             <option value="anagram">Anagram</option>
-                            <option value="pattern">Pattern</option>
+                            <option value="pattern" selected>Pattern</option>
                             <option value="build">Build</option>
                             <option value="subword">Subword</option>
                             <option value="superword">Superword</option>
@@ -125,6 +126,9 @@
         </div>
 
         <div id="results_pane">
+            <div id="back_bar">
+                <button id="back_button" class="btn btn-sm btn-secondary">&lt; Back to Query</button>
+            </div>
             <div id="message-line">&nbsp;</div>
             <div id="results_container" >
                 <pre id="results"></pre>

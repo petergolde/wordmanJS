@@ -4,23 +4,28 @@ $(function (): void {
     // $('#main').css('padding-top', $('#header').height() + 'px');
     $("#querytype-select > option[value=pattern]").attr('selected', "true");
     Program.start();
-});
 
-$("#main_form").submit((e) => {
-    let queryText = <string>$("#query_text").val();
-    Program.findMatches(queryText);
-    e.preventDefault();
-});
- 
-$("#search_results_button").click(e => {
-    let queryText = <string>$("#query_text").val();
-    Program.findMatchesInCurrentResults(queryText);
-    e.preventDefault();
-});
 
-$(window).resize(e => {
-    Program.resize();
-})
+    $("#main_form").submit((e) => {
+        let queryText = <string>$("#query_text").val();
+        Program.findMatches(queryText);
+        e.preventDefault();
+    });
+    
+    $("#search_results_button").click(e => {
+        let queryText = <string>$("#query_text").val();
+        Program.findMatchesInCurrentResults(queryText);
+        e.preventDefault();
+    });
+
+    $("#back_button").click(e => {
+        Program.backButtonClicked();
+    });
+
+    $(window).resize(e => {
+        Program.resize();
+    });
+});
 
 class AsyncWorker { 
     private worker: Worker;
@@ -56,7 +61,7 @@ class AsyncWorker {
     // will have the result of executing that method.
     public execute(action: string, ...args: any[]): Promise<any> {
         if (this.workerIsRunning) {
-            throw new Error("Cannot execute new work while the working is busy.");
+            throw new Error("Cannot execute new work while the worker is busy.");
         }
 
         this.workerIsRunning = true;
@@ -142,8 +147,24 @@ class Program {
         this.showAlert(`Word lists loaded with ${totalWords} total words.`, this.greenColor);
     }
 
+    public static backButtonClicked() {
+        this.showResults(false);
+    }
+
+    private static showResults(showResults: boolean) {
+        if (showResults) {
+            $("#results_pane").addClass("show-results");
+            $("#header").removeClass("show-header");
+        }
+        else {
+            $("#results_pane").removeClass("show-results");
+            $("#header").addClass("show-header");
+        }
+    }
+
 
     private static async findMatchesCore(query: string, wordListsToSearch: string[]): Promise<void> {
+
         this.showAlert(`Beginning search`, this.yellowColor);
 
         try {
@@ -156,6 +177,8 @@ class Program {
                 return;
             }
 
+            this.showResults(true);
+
             let matchResult = <MatchResult>await this.worker.execute("findMatches", query, matchType, wordListsToSearch, matchOptions);
 
             if (matchResult.hitMaximum) {
@@ -166,7 +189,7 @@ class Program {
             }
 
             this.currentResults = matchResult.matches;
-            this.displayResultsInColumns(this.currentResults);
+            this.displayResults(this.currentResults);
             if (matchResult.matches.length > 0) {
                 $("#search_results_button").prop("disabled", false);
             }
@@ -194,7 +217,7 @@ class Program {
     public static resize()
     {
         if (this.currentResults) {
-            this.displayResultsInColumns(this.currentResults);
+            this.displayResults(this.currentResults);
         }
     }
 
@@ -229,38 +252,27 @@ class Program {
         $("#results").html(wrappedText);
     }
 
-    /*
+    
 
     private static displayResultsInRows(results: string[]): void {
-
-        let maxLength: number = 0;
-        for (let word of results) {
-            if (word.length > maxLength) {
-                maxLength = word.length;
-            }
-        }
-
-        let charWidth = this.getTextWidth("MONEYMONEY", "13px monospace") / 10.0;
-        let wordWidth = (maxLength + 5) * charWidth;
-        let columns = Math.floor((<number>$("#results").width()) / wordWidth);
-
-        let col = 1;
         let wrappedText = "";
         for (let word of results) {
             wrappedText += word;
-            if (col == columns) {
-                wrappedText += "\r\n";
-                col = 1;
-            }
-            else {
-                wrappedText += this.padding.substr(0, maxLength + 5 - word.length);
-                ++col;
-            }
+            wrappedText += "\r\n";
         }
 
         $("#results").html(wrappedText);
     }
-    */
+
+    private static displayResults(results: string[]) : void {
+        if ($("#back_bar").css("display")=="none") { 
+            this.displayResultsInColumns(results);
+        }
+        else {
+            this.displayResultsInRows(results);
+        }
+    }
+    
     private static initWorker(): void {
         this.worker = new AsyncWorker('/worker/worker.js');
     }

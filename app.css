@@ -13,6 +13,9 @@
     #header {
         background: #eee;
         width: 100%;
+    }
+
+    #main_form {
         padding-top: 0.5em;
     }
 
@@ -116,4 +119,38 @@
         line-height: 16px;
         margin-bottom: 0;
         padding-left: 4px;
+    }
+
+    /* These styles are only for non-mobile */
+    @media (min-width: 576px) {
+        #back_bar {
+            display: none;
+        }
+    }
+
+    /* These styles are for mobile */
+    @media (max-width: 575.98px) {
+        #back_bar {
+            background: #eee;
+        }
+
+        #back_button {
+            margin: 3px 3px 3px 3px;
+        }
+
+        #header {
+            display: none;
+        }
+
+        #header.show-header {
+            display: block;
+        }
+
+        #results_pane {
+           display: none; 
+        }
+
+        #results_pane.show-results {
+            display: flex;
+        } 
     }
