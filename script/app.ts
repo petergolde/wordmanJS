@@ -22,6 +22,14 @@ $(function (): void {
         Program.backButtonClicked();
     });
 
+    $("#sort-select-1").change(e => {
+        Program.resize();
+    });
+
+    $("#sort-select-2").change(e => {
+        Program.resize();
+    });
+
     $(window).resize(e => {
         Program.resize();
     });
@@ -265,11 +273,38 @@ class Program {
     }
 
     private static displayResults(results: string[]) : void {
-        if ($("#back_bar").css("display")=="none") { 
-            this.displayResultsInColumns(results);
+        var mobile: boolean = ($("#back_bar").css("display") != "none");
+        var sorting: string;
+
+        if (mobile) {
+            sorting = <string> $("#sort-select-2").val();
         }
         else {
+            sorting = <string> $("#sort-select-1").val();
+        }
+
+        if (sorting == "length") {
+            results = results.sort((s1, s2) => {
+                if (s1.length < s2.length) {
+                    return 1;
+                }
+                else if (s1.length > s2.length) {
+                    return -1;
+                }
+                else {
+                    return s1.localeCompare(s2);
+                }
+            });
+        }
+        else {
+            results = results.sort();
+        }
+
+        if (mobile) { 
             this.displayResultsInRows(results);
+        }
+        else {
+            this.displayResultsInColumns(results);
         }
     }
     
@@ -302,7 +337,12 @@ class Program {
         let container = $("#wordlist-container");
         container.empty();
         for (let wl of this.builtInWordLists.concat(this.customWordLists)) {
-            container.append(`<input type="checkbox" value="${wl}"/> ${wl}<br />`);
+            if (wl=="Common words" || wl=="ENABLE") {
+                container.append(`<input type="checkbox" value="${wl}" checked/> ${wl}<br />`);
+            }
+            else {
+                container.append(`<input type="checkbox" value="${wl}"/> ${wl}<br />`);
+            }
         }
     }
 
@@ -333,12 +373,12 @@ class Program {
     }
 
     private static showAlert(text: string, color: string): void {
-        $("#message-line").html(text).css("background-color", color);
+        $(".message-line").html(text).css("background-color", color);
     }
 
     /*
     private static clearAlert(): void {
-        $("#message-line").html("&nbsp;").css("background-color", "");
+        $(".message-line").html("&nbsp;").css("background-color", "");
     }
     */
 

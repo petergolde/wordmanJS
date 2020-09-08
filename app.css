@@ -29,6 +29,10 @@
         font: inherit;
     }
 
+    .btn:disabled {
+        opacity: 0.3;
+    }
+
     .mycontrol {
         border-radius: 4px;
         border: 1px solid #aaa;
@@ -79,6 +83,11 @@
         height: 25px
     }
 
+    select.medium {
+        width: 120px;
+        height: 25px;
+    }
+
     label.short {
         width: 90px;
         display: inline-block;
@@ -92,7 +101,7 @@
         font-weight: bold;
     }
 
-    #message-line {
+    .message-line {
         padding-left: 2px;
     }
 
@@ -130,12 +139,23 @@
 
     /* These styles are for mobile */
     @media (max-width: 575.98px) {
+        .hide-mobile {
+            display: none;
+        }
+
         #back_bar {
             background: #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         #back_button {
             margin: 3px 3px 3px 3px;
+        }
+
+        #back_bar_sort {
+            margin-right: 3px;
         }
 
         #header {

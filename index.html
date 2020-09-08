@@ -104,6 +104,14 @@
                                 <option value="5">5</option>
                             </select>
                         </div>
+
+                        <div class="spacy hide-mobile">
+                            <label class="short">Sort: </label>
+                            <select id="sort-select-1" class="mycontrol medium">
+                                <option value="alpha">Alphabetically</option>
+                                <option value="length">by Length</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="minor-inset">
@@ -127,9 +135,18 @@
 
         <div id="results_pane">
             <div id="back_bar">
-                <button id="back_button" class="btn btn-sm btn-secondary">&lt; Back to Query</button>
+                <button id="back_button" class="btn btn-sm btn-primary">&lt; Back to Query</button>
+
+                <span id="back_bar_sort">
+                    <label>Sort: </label>
+                    <select id="sort-select-2" class="mycontrol medium">
+                        <option value="alpha">Alphabetically</option>
+                        <option value="length">by Length</option>
+                    </select>
+                </span>
+
             </div>
-            <div id="message-line">&nbsp;</div>
+            <div class="message-line">&nbsp;</div>
             <div id="results_container" >
                 <pre id="results"></pre>
             </div>

@@ -51,6 +51,12 @@ $(function () {
     $("#back_button").click(function (e) {
         Program.backButtonClicked();
     });
+    $("#sort-select-1").change(function (e) {
+        Program.resize();
+    });
+    $("#sort-select-2").change(function (e) {
+        Program.resize();
+    });
     $(window).resize(function (e) {
         Program.resize();
     });
@@ -252,11 +258,35 @@ var Program = (function () {
         $("#results").html(wrappedText);
     };
     Program.displayResults = function (results) {
-        if ($("#back_bar").css("display") == "none") {
-            this.displayResultsInColumns(results);
+        var mobile = ($("#back_bar").css("display") != "none");
+        var sorting;
+        if (mobile) {
+            sorting = $("#sort-select-2").val();
         }
         else {
+            sorting = $("#sort-select-1").val();
+        }
+        if (sorting == "length") {
+            results = results.sort(function (s1, s2) {
+                if (s1.length < s2.length) {
+                    return 1;
+                }
+                else if (s1.length > s2.length) {
+                    return -1;
+                }
+                else {
+                    return s1.localeCompare(s2);
+                }
+            });
+        }
+        else {
+            results = results.sort();
+        }
+        if (mobile) {
             this.displayResultsInRows(results);
+        }
+        else {
+            this.displayResultsInColumns(results);
         }
     };
     Program.initWorker = function () {
@@ -303,7 +333,12 @@ var Program = (function () {
         container.empty();
         for (var _i = 0, _a = this.builtInWordLists.concat(this.customWordLists); _i < _a.length; _i++) {
             var wl = _a[_i];
-            container.append("<input type=\"checkbox\" value=\"" + wl + "\"/> " + wl + "<br />");
+            if (wl == "Common words" || wl == "ENABLE") {
+                container.append("<input type=\"checkbox\" value=\"" + wl + "\" checked/> " + wl + "<br />");
+            }
+            else {
+                container.append("<input type=\"checkbox\" value=\"" + wl + "\"/> " + wl + "<br />");
+            }
         }
     };
     Program.collectOptions = function () {
@@ -329,7 +364,7 @@ var Program = (function () {
         return $("#querytype-select").val();
     };
     Program.showAlert = function (text, color) {
-        $("#message-line").html(text).css("background-color", color);
+        $(".message-line").html(text).css("background-color", color);
     };
     Program.getTextWidth = function (text, font) {
         var canvas = this.canvasCache || (this.canvasCache = document.createElement("canvas"));
