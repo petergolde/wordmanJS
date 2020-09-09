@@ -30,6 +30,10 @@ $(function (): void {
         Program.resize();
     });
 
+    $("#querytype-select").change(e => {
+        Program.updateHelp();
+    });
+
     $(window).resize(e => {
         Program.resize();
     });
@@ -149,10 +153,25 @@ class Program {
     public static async start(): Promise<void> {
         this.initWorker();
         this.showWordListUi();
+        this.updateHelp();
 
         this.showAlert("Loading word list.", this.yellowColor);
         let totalWords = await this.loadWordLists();
         this.showAlert(`Word lists loaded with ${totalWords} total words.`, this.greenColor);
+    }
+
+    private static setHelpText(matcher: string)
+    {
+        var helpElement: JQuery<HTMLElement>;
+        helpElement = $("#help-" + matcher);
+        $("#helplocation").html(helpElement.html());
+        
+    }
+
+    public static updateHelp()
+    {
+        let matchType: string = this.collectMatchType();
+        this.setHelpText(matchType);
     }
 
     public static backButtonClicked() {

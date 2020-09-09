@@ -29,6 +29,10 @@
         font: inherit;
     }
 
+    .template {
+        display: none;
+    }
+
     .btn:disabled {
         opacity: 0.3;
     }
@@ -70,7 +74,8 @@
         padding-left: 3px;
         padding-right: 3px;
         padding-top: 2px;
-        background-color: white
+        background-color: white;
+        margin-bottom: 3px;
     }
 
     .spacy {
@@ -105,6 +110,21 @@
         padding-left: 2px;
     }
 
+    #helplocation {
+        padding: 4px;
+        border: solid black 1px;
+        width: 300px;
+        min-height: 100px;
+    }
+
+    #helplocation table {
+        font-size: 12px;
+    }
+
+    #helplocation table td + td{
+        padding-left: 4px;
+    }
+
     #results_pane {
         flex: 1;
         display: flex;
@@ -131,6 +151,7 @@
     }
 
     /* These styles are only for non-mobile */
+
     @media (min-width: 576px) {
         #back_bar {
             display: none;
@@ -138,39 +159,33 @@
     }
 
     /* These styles are for mobile */
+
     @media (max-width: 575.98px) {
         .hide-mobile {
             display: none;
         }
-
         #back_bar {
             background: #eee;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
         #back_button {
             margin: 3px 3px 3px 3px;
         }
-
         #back_bar_sort {
             margin-right: 3px;
         }
-
         #header {
             display: none;
         }
-
         #header.show-header {
             display: block;
         }
-
         #results_pane {
-           display: none; 
+            display: none;
         }
-
         #results_pane.show-results {
             display: flex;
-        } 
+        }
     }

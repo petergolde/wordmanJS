@@ -57,6 +57,9 @@ $(function () {
     $("#sort-select-2").change(function (e) {
         Program.resize();
     });
+    $("#querytype-select").change(function (e) {
+        Program.updateHelp();
+    });
     $(window).resize(function (e) {
         Program.resize();
     });
@@ -141,6 +144,7 @@ var Program = (function () {
                     case 0:
                         this.initWorker();
                         this.showWordListUi();
+                        this.updateHelp();
                         this.showAlert("Loading word list.", this.yellowColor);
                         return [4, this.loadWordLists()];
                     case 1:
@@ -150,6 +154,15 @@ var Program = (function () {
                 }
             });
         });
+    };
+    Program.setHelpText = function (matcher) {
+        var helpElement;
+        helpElement = $("#help-" + matcher);
+        $("#helplocation").html(helpElement.html());
+    };
+    Program.updateHelp = function () {
+        var matchType = this.collectMatchType();
+        this.setHelpText(matchType);
     };
     Program.backButtonClicked = function () {
         this.showResults(false);

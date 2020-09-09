@@ -120,10 +120,15 @@
                         </div>
                     </div>
 
+                    <div class="minor-inset">
+                        <div id="helplocation">
+                        </div>
+                    </div>
+
                 </div>
 
-                <div class="minor-inset" >
-                    <label for="query-text">Query pattern:</label>
+                <div class="minor-inset mt-2" >
+                    <label for="query-text"><strong>Query pattern:</strong></label>
                     <input id="query_text" class="mycontrol" type="text" >
                     <div class="mt-2">
                         <button class="btn btn-sm btn-primary text-nowrap" type="submit" id="search_button">Search Word Lists</button>
@@ -131,6 +136,8 @@
                     </div>
                 </div>
             </form>
+
+            <div class="message-line">&nbsp;</div>
         </div>
 
         <div id="results_pane">
@@ -152,6 +159,151 @@
             </div>
         </div>
     </div>
+
+    <div class="template">
+        <div id="help-anagram">
+            <p>Type letters to anagram.</p>
+            <table>
+                <tr>
+                    <td>? or .</td>
+                    <td>matches any single letter</td>
+                </tr>
+                <tr>
+                    <td>* or @</td>
+                    <td>matches zero or more letters</td>
+                </tr>
+                <tr>
+                    <td>[abc] or (abc)</td>
+                    <td>matches any one of a,b,c</td>
+                </tr>
+                <tr>
+                    <td>[^abc] or (!abc)</td>
+                    <td>matches any but a,b,c</td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="help-pattern">
+            <p>Type a pattern to match, in order.</p>
+            <table>
+                <tr>
+                    <td>? or .</td>
+                    <td>matches any single letter</td>
+                </tr>
+                <tr>
+                    <td>* or @</td>
+                    <td>matches zero or more letters</td>
+                </tr>
+                <tr>
+                    <td>[abc] or (abc)</td>
+                    <td>matches any one of a,b,c</td>
+                </tr>
+                <tr>
+                    <td>[^abc] or (!abc)</td>
+                    <td>matches any but a,b,c</td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="help-build">
+            <p>Type letters to build word from.</p>
+            <table>
+                <tr>
+                    <td>? or .</td>
+                    <td>matches any single letter</td>
+                </tr>
+                <tr>
+                    <td>[abc] or (abc)</td>
+                    <td>matches any one of a,b,c</td>
+                </tr>
+                <tr>
+                    <td>[^abc] or (!abc)</td>
+                    <td>matches any but a,b,c</td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="help-superword">
+            <p>Type a pattern to find superwords of.</p>
+            <table>
+                <tr>
+                    <td>? or .</td>
+                    <td>matches any single letter</td>
+                </tr>
+                <tr>
+                    <td>* or @</td>
+                    <td>matches zero or more letters</td>
+                </tr>
+                <tr>
+                    <td>[abc] or (abc)</td>
+                    <td>matches any one of a,b,c</td>
+                </tr>
+                <tr>
+                    <td>[^abc] or (!abc)</td>
+                    <td>matches any but a,b,c</td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="help-subword">
+            <p>Type a pattern to find subwords of.</p>
+            <table>
+                <tr>
+                    <td>? or .</td>
+                    <td>matches any single letter</td>
+                </tr>
+                <tr>
+                    <td>[abc] or (abc)</td>
+                    <td>matches any one of a,b,c</td>
+                </tr>
+                <tr>
+                    <td>[^abc] or (!abc)</td>
+                    <td>matches any but a,b,c</td>
+                </tr>
+            </table>
+        </div>    
+    
+        <div id="help-cryptogram">
+            <p>Type a cryptogram pattern.<br/>(example: XYZZY matches PENNE)</p>
+            <table>
+                <tr>
+                    <td>? or .</td>
+                    <td>matches any single letter</td>
+                </tr>
+                <tr>
+                    <td>* or @</td>
+                    <td>matches zero or more letters</td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="help-insert">
+            <p>Type a pattern to insert consecutive letters into.</p>
+            <table>
+                <tr>
+                    <td>? or .</td>
+                    <td>matches any single letter</td>
+                </tr>
+                <tr>
+                    <td>* or @</td>
+                    <td>matches zero or more letters</td>
+                </tr>
+                <tr>
+                    <td>[abc] or (abc)</td>
+                    <td>matches any one of a,b,c</td>
+                </tr>
+                <tr>
+                    <td>[^abc] or (!abc)</td>
+                    <td>matches any but a,b,c</td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="help-regex">
+            <p>Type a pattern to match with Javascript regular expressions.</p>
+        </div>
+    </template>
+
 
     <script src="lib/jquery/dist/jquery.min.js"></script>
     <script src="lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
