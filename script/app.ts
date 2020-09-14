@@ -227,9 +227,10 @@ class Program {
             }
         }
         catch (err) {
-            this.showAlert("Exception occurred", this.redColor);
-            $("#results").html(`name: ${err.name} message: ${err.message} stack: ${err.stack}`);
+            this.showAlert(err.message, this.redColor);
+            $("#results").html("");
             $("#search_results_button").prop("disabled", true);
+            this.updateSaveButton([]);
         }
     }
 
@@ -333,21 +334,27 @@ class Program {
 
     private static updateSaveButton(results: string[])
     {
-        var resultsText: string = this.getResultsAsText(results);
-        var blob: Blob = new Blob([resultsText], { type: 'text/csv' });
-
-        if (this.blobUrl) {
-            window.URL.revokeObjectURL(this.blobUrl);
-            this.blobUrl = "";
-        }
-        this.blobUrl = window.URL.createObjectURL(blob);
-
         var saveLink = $(".download-results");
-        saveLink.each((number, element) =>  {
-            (<HTMLAnchorElement>element).href = this.blobUrl;
-        });
-            
-        saveLink.removeClass("disabled");
+        
+        if (results && results.length > 0) {
+            var resultsText: string = this.getResultsAsText(results);
+            var blob: Blob = new Blob([resultsText], { type: 'text/csv' });
+
+            if (this.blobUrl) {
+                window.URL.revokeObjectURL(this.blobUrl);
+                this.blobUrl = "";
+            }
+            this.blobUrl = window.URL.createObjectURL(blob);
+
+            saveLink.each((number, element) =>  {
+                (<HTMLAnchorElement>element).href = this.blobUrl;
+            });
+                
+            saveLink.removeClass("disabled");
+        }
+        else {
+            saveLink.addClass("disabled");
+        }
     }
     
     private static initWorker(): void {

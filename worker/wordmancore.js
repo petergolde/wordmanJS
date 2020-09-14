@@ -713,6 +713,9 @@ var CryptoMatch = (function () {
         return builder;
     };
     CryptoMatch.prototype.setPattern = function (pattern, mistakes) {
+        if (mistakes > 0) {
+            throw new Error("Cryptogram cannot have mistakes");
+        }
         var regexExpression = this.translateToRegex(pattern);
         this.regex = new RegExp("^" + regexExpression + "$");
     };
@@ -920,6 +923,9 @@ var RegExpression = (function () {
         return "Type a pattern to match with Javascript regular expressions.";
     };
     RegExpression.prototype.setPattern = function (pattern, mistakes) {
+        if (mistakes > 0) {
+            throw new Error("RegEx cannot have mistakes");
+        }
         this.regex = new RegExp("^" + pattern + "$", 'i');
     };
     RegExpression.prototype.matchWord = function (word) {

@@ -896,6 +896,10 @@ class CryptoMatch implements IMatcher {
 
 
     public setPattern(pattern: string, mistakes: number): void {
+        if (mistakes > 0) {
+            throw new Error("Cryptogram cannot have mistakes");
+        }
+
         let regexExpression: string = this.translateToRegex(pattern);
         this.regex = new RegExp("^" + regexExpression + "$");
     }
@@ -1147,6 +1151,9 @@ class RegExpression implements IMatcher {
     }
 
     public setPattern(pattern: string, mistakes: number): void {
+        if (mistakes > 0) {
+            throw new Error("RegEx cannot have mistakes");
+        }
         this.regex = new RegExp("^" + pattern + "$", 'i');
     }
 

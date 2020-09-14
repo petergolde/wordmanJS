@@ -216,9 +216,10 @@ var Program = (function () {
                         return [3, 4];
                     case 3:
                         err_1 = _a.sent();
-                        this.showAlert("Exception occurred", this.redColor);
-                        $("#results").html("name: " + err_1.name + " message: " + err_1.message + " stack: " + err_1.stack);
+                        this.showAlert(err_1.message, this.redColor);
+                        $("#results").html("");
                         $("#search_results_button").prop("disabled", true);
+                        this.updateSaveButton([]);
                         return [3, 4];
                     case 4: return [2];
                 }
@@ -309,18 +310,23 @@ var Program = (function () {
     };
     Program.updateSaveButton = function (results) {
         var _this = this;
-        var resultsText = this.getResultsAsText(results);
-        var blob = new Blob([resultsText], { type: 'text/csv' });
-        if (this.blobUrl) {
-            window.URL.revokeObjectURL(this.blobUrl);
-            this.blobUrl = "";
-        }
-        this.blobUrl = window.URL.createObjectURL(blob);
         var saveLink = $(".download-results");
-        saveLink.each(function (number, element) {
-            element.href = _this.blobUrl;
-        });
-        saveLink.removeClass("disabled");
+        if (results && results.length > 0) {
+            var resultsText = this.getResultsAsText(results);
+            var blob = new Blob([resultsText], { type: 'text/csv' });
+            if (this.blobUrl) {
+                window.URL.revokeObjectURL(this.blobUrl);
+                this.blobUrl = "";
+            }
+            this.blobUrl = window.URL.createObjectURL(blob);
+            saveLink.each(function (number, element) {
+                element.href = _this.blobUrl;
+            });
+            saveLink.removeClass("disabled");
+        }
+        else {
+            saveLink.addClass("disabled");
+        }
     };
     Program.initWorker = function () {
         this.worker = new AsyncWorker('/worker/worker.js');
