@@ -206,6 +206,7 @@ var Program = (function () {
                         }
                         this.currentResults = matchResult.matches;
                         this.displayResults(this.currentResults);
+                        this.updateSaveButton(this.currentResults);
                         if (matchResult.matches.length > 0) {
                             $("#search_results_button").prop("disabled", false);
                         }
@@ -261,13 +262,17 @@ var Program = (function () {
         }
         $("#results").html(wrappedText);
     };
-    Program.displayResultsInRows = function (results) {
+    Program.getResultsAsText = function (results) {
         var wrappedText = "";
         for (var _i = 0, results_2 = results; _i < results_2.length; _i++) {
             var word = results_2[_i];
             wrappedText += word;
             wrappedText += "\r\n";
         }
+        return wrappedText;
+    };
+    Program.displayResultsInRows = function (results) {
+        var wrappedText = this.getResultsAsText(results);
         $("#results").html(wrappedText);
     };
     Program.displayResults = function (results) {
@@ -301,6 +306,21 @@ var Program = (function () {
         else {
             this.displayResultsInColumns(results);
         }
+    };
+    Program.updateSaveButton = function (results) {
+        var _this = this;
+        var resultsText = this.getResultsAsText(results);
+        var blob = new Blob([resultsText], { type: 'text/csv' });
+        if (this.blobUrl) {
+            window.URL.revokeObjectURL(this.blobUrl);
+            this.blobUrl = "";
+        }
+        this.blobUrl = window.URL.createObjectURL(blob);
+        var saveLink = $(".download-results");
+        saveLink.each(function (number, element) {
+            element.href = _this.blobUrl;
+        });
+        saveLink.removeClass("disabled");
     };
     Program.initWorker = function () {
         this.worker = new AsyncWorker('/worker/worker.js');

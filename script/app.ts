@@ -149,6 +149,7 @@ class Program {
     private static redColor = "#ffaaaa";
 
     private static currentResults: string[] = [];
+    private static blobUrl: string;
 
     public static async start(): Promise<void> {
         this.initWorker();
@@ -217,6 +218,7 @@ class Program {
 
             this.currentResults = matchResult.matches;
             this.displayResults(this.currentResults);
+            this.updateSaveButton(this.currentResults);
             if (matchResult.matches.length > 0) {
                 $("#search_results_button").prop("disabled", false);
             }
@@ -279,15 +281,17 @@ class Program {
         $("#results").html(wrappedText);
     }
 
-    
-
-    private static displayResultsInRows(results: string[]): void {
+    private static getResultsAsText(results: string[]): string {
         let wrappedText = "";
         for (let word of results) {
             wrappedText += word;
             wrappedText += "\r\n";
         }
+        return wrappedText;
+    }
 
+    private static displayResultsInRows(results: string[]): void {
+        var wrappedText = this.getResultsAsText(results);
         $("#results").html(wrappedText);
     }
 
@@ -325,6 +329,25 @@ class Program {
         else {
             this.displayResultsInColumns(results);
         }
+    }
+
+    private static updateSaveButton(results: string[])
+    {
+        var resultsText: string = this.getResultsAsText(results);
+        var blob: Blob = new Blob([resultsText], { type: 'text/csv' });
+
+        if (this.blobUrl) {
+            window.URL.revokeObjectURL(this.blobUrl);
+            this.blobUrl = "";
+        }
+        this.blobUrl = window.URL.createObjectURL(blob);
+
+        var saveLink = $(".download-results");
+        saveLink.each((number, element) =>  {
+            (<HTMLAnchorElement>element).href = this.blobUrl;
+        });
+            
+        saveLink.removeClass("disabled");
     }
     
     private static initWorker(): void {

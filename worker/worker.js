@@ -113,6 +113,16 @@ var Actions = (function (_super) {
             });
         });
     };
+    Actions.prototype.loadWordsFromString = function (text, name) {
+        return __awaiter(this, void 0, void 0, function () {
+            var wordList;
+            return __generator(this, function (_a) {
+                wordList = WordList.create(text, true);
+                this.wordLists.set(name, wordList);
+                return [2, wordList.count()];
+            });
+        });
+    };
     Actions.prototype.findMatches = function (query, matchType, lists, options) {
         var matcher;
         switch (matchType) {

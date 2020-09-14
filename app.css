@@ -33,7 +33,7 @@
         display: none;
     }
 
-    .btn:disabled {
+    .btn:disabled, .btn.disabled {
         opacity: 0.3;
     }
 
@@ -104,6 +104,7 @@
         padding: 2px;
         margin-right: 1em;
         font-weight: bold;
+        text-transform: uppercase;
     }
 
     .message-line {
@@ -152,15 +153,18 @@
 
     /* These styles are only for non-mobile */
 
-    @media (min-width: 576px) {
+    @media (min-width: 650px) {
         #back_bar {
+            display: none;
+        }
+        #message2 {
             display: none;
         }
     }
 
     /* These styles are for mobile */
 
-    @media (max-width: 575.98px) {
+    @media (max-width: 649.98px) {
         .hide-mobile {
             display: none;
         }

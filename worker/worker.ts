@@ -53,6 +53,12 @@ class Actions extends WorkerClass {
         return wordList.count();
     }
 
+    public async loadWordsFromString(text: string, name: string): Promise<number> {
+        let wordList = WordList.create(text, true);  // sanitize word list from string.
+        this.wordLists.set(name, wordList);
+        return wordList.count();
+    }
+
     public findMatches(query: string, matchType: string, lists: string[], options: MatchOptions): MatchResult {
         let matcher: IMatcher;
         switch (matchType) {

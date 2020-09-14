@@ -105,13 +105,6 @@
                             </select>
                         </div>
 
-                        <div class="spacy hide-mobile">
-                            <label class="short">Sort: </label>
-                            <select id="sort-select-1" class="mycontrol medium">
-                                <option value="alpha">Alphabetically</option>
-                                <option value="length">by Length</option>
-                            </select>
-                        </div>
                     </div>
 
                     <div class="minor-inset">
@@ -129,15 +122,25 @@
 
                 <div class="minor-inset mt-2" >
                     <label for="query-text"><strong>Query pattern:</strong></label>
-                    <input id="query_text" class="mycontrol" type="text" >
-                    <div class="mt-2">
-                        <button class="btn btn-sm btn-primary text-nowrap" type="submit" id="search_button">Search Word Lists</button>
-                        <button class="btn btn-sm btn-secondary text-nowrap" type="button" id="search_results_button" disabled>Search Results</button>
+                    <input id="query_text" class="mycontrol" type="text" autocorrect="off" autocapitalize="off" spellcheck="false" >
+                    <div class="mt-2" style="display: flex; justify-content: space-between;">
+                        <div>
+                            <button class="btn btn-sm btn-primary text-nowrap" type="submit" id="search_button">Search Word Lists</button>
+                            <button class="btn btn-sm btn-secondary text-nowrap" type="button" id="search_results_button" style="margin-left: 1em" disabled>Search Results</button>
+                        </div>
+                        <div class=" hide-mobile">
+                            <label>Sort: </label>
+                            <select id="sort-select-1" class="mycontrol medium">
+                                <option value="alpha">Alphabetically</option>
+                                <option value="length">by Length</option>
+                            </select>
+                        </div>
+                        <a class="download-results btn btn-sm btn-secondary disabled" href="" download="results.txt">Download Results</a>
                     </div>
                 </div>
             </form>
 
-            <div class="message-line">&nbsp;</div>
+            <div id="message1" class="message-line">&nbsp;</div>
         </div>
 
         <div id="results_pane">
@@ -153,7 +156,7 @@
                 </span>
 
             </div>
-            <div class="message-line">&nbsp;</div>
+            <div id="message2" class="message-line">&nbsp;</div>
             <div id="results_container" >
                 <pre id="results"></pre>
             </div>
