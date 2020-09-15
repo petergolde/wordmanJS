@@ -70,7 +70,7 @@
         border: 1px solid #888;
         border-radius: 0px;
         height: 195px;
-        overflow-y: auto;
+        overflow-y: scroll;
         padding-left: 3px;
         padding-right: 3px;
         padding-top: 2px;

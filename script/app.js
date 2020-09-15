@@ -60,6 +60,12 @@ $(function () {
     $("#querytype-select").change(function (e) {
         Program.updateHelp();
     });
+    $("#addwordlist").click(function (e) {
+        Program.addWordList();
+    });
+    $("#customwordlistselected").click(function (e) {
+        Program.selectedWordList();
+    });
     $(window).resize(function (e) {
         Program.resize();
     });
@@ -405,6 +411,55 @@ var Program = (function () {
     Program.showAlert = function (text, color) {
         $(".message-line").html(text).css("background-color", color);
     };
+    Program.addWordList = function () {
+        $("#wordlistname").val("");
+        $("#customwordlistfile").val("");
+        $("#customWordListModal").modal();
+    };
+    Program.selectedWordList = function () {
+        var _this = this;
+        $("#customWordListModal").modal('hide');
+        var wordListName = ($("#wordlistname").val());
+        var wordListFile;
+        var wordListFileElement = $("#customwordlistfile")[0];
+        if (wordListFileElement.files == null || wordListFileElement.files.length == 0) {
+            this.showAlert("No file was selected", this.redColor);
+            return;
+        }
+        else {
+            wordListFile = wordListFileElement.files[0];
+        }
+        if (wordListName.length == 0) {
+            this.showAlert("A word list name must be supplied", this.redColor);
+            return;
+        }
+        var fileReader = new FileReader();
+        var fileText = "";
+        fileReader.onload = function () { return __awaiter(_this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (fileReader.result == null) {
+                            this.showAlert("Could not read word list file", this.redColor);
+                            return [2];
+                        }
+                        fileText = fileReader.result;
+                        if (fileText.length == 0) {
+                            this.showAlert("Could not read word list file", this.redColor);
+                            return [2];
+                        }
+                        return [4, this.worker.execute("loadWordsFromString", fileText, wordListName)];
+                    case 1:
+                        _a.sent();
+                        this.customWordLists.push(wordListName);
+                        this.showAlert("Word list '" + wordListName + "' successfully loaded", this.greenColor);
+                        this.showWordListUi();
+                        return [2];
+                }
+            });
+        }); };
+        fileReader.readAsText(wordListFile);
+    };
     Program.getTextWidth = function (text, font) {
         var canvas = this.canvasCache || (this.canvasCache = document.createElement("canvas"));
         var context = canvas.getContext("2d");
@@ -418,7 +473,7 @@ var Program = (function () {
     Program.currentResults = [];
     Program.padding = "                                                                                                           ";
     Program.builtInWordLists = [
-        "Common words", "ENABLE rare words", "ENABLE", "Idioms", "Kitchen Sink",
+        "Common words", "ENABLE", "ENABLE rare words", "Idioms", "Kitchen Sink",
         "Names", "NYT Crosswords", "Places", "UK advanced cryptics", "Websters New Intl"
     ];
     Program.customWordLists = [];

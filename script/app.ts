@@ -1,4 +1,5 @@
 ///<reference path="../node_modules/@types/jquery/JQuery.d.ts" />
+///<reference path="../node_modules/@types/bootstrap/index.d.ts" />
 
 $(function (): void {
     // $('#main').css('padding-top', $('#header').height() + 'px');
@@ -32,6 +33,15 @@ $(function (): void {
 
     $("#querytype-select").change(e => {
         Program.updateHelp();
+    });
+
+    $("#addwordlist").click(e => {
+        Program.addWordList();
+    });
+
+
+    $("#customwordlistselected").click(e => {
+        Program.selectedWordList();
     });
 
     $(window).resize(e => {
@@ -362,7 +372,7 @@ class Program {
     }
 
     private static builtInWordLists = [
-        "Common words", "ENABLE rare words", "ENABLE", "Idioms", "Kitchen Sink",
+        "Common words", "ENABLE", "ENABLE rare words", "Idioms", "Kitchen Sink",
         "Names", "NYT Crosswords", "Places", "UK advanced cryptics", "Websters New Intl"
     ];
 
@@ -423,6 +433,53 @@ class Program {
 
     private static showAlert(text: string, color: string): void {
         $(".message-line").html(text).css("background-color", color);
+    }
+
+    public static addWordList() {
+        $("#wordlistname").val("");
+        $("#customwordlistfile").val("");
+        $("#customWordListModal").modal();
+    }
+
+
+    public static selectedWordList() {
+        $("#customWordListModal").modal('hide');
+        var wordListName:string = <string>($("#wordlistname").val());
+        var wordListFile: File;
+
+        let wordListFileElement = (<HTMLInputElement>$("#customwordlistfile")[0]);
+        if (wordListFileElement.files == null || wordListFileElement.files.length == 0) {
+            this.showAlert("No file was selected", this.redColor);
+            return;
+        }
+        else {
+            wordListFile = wordListFileElement.files[0];
+        }
+
+        if (wordListName.length == 0) {
+            this.showAlert("A word list name must be supplied", this.redColor);
+            return;
+        }
+
+        var fileReader = new FileReader();
+        var fileText: string = "";
+        fileReader.onload = async () => {
+            if (fileReader.result == null) {
+                this.showAlert("Could not read word list file", this.redColor);
+                return;
+            }
+            fileText = <string> fileReader.result;
+            if (fileText.length == 0) {
+                this.showAlert("Could not read word list file", this.redColor);
+                return;
+            }
+
+            await this.worker.execute("loadWordsFromString", fileText, wordListName);
+            this.customWordLists.push(wordListName);
+            this.showAlert("Word list '" + wordListName + "' successfully loaded", this.greenColor);
+            this.showWordListUi();
+        };
+        fileReader.readAsText(wordListFile);
     }
 
     /*
