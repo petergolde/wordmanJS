@@ -78,11 +78,6 @@
         margin-bottom: 3px;
     }
 
-    .spacy {
-        padding-top: 4px;
-        padding-bottom: 4px;
-    }
-
     select.short {
         width: 80px;
         height: 25px
@@ -122,7 +117,7 @@
         font-size: 12px;
     }
 
-    #helplocation table td + td{
+    #helplocation table td+td {
         padding-left: 4px;
     }
 
@@ -160,12 +155,16 @@
         #message2 {
             display: none;
         }
+        .spacy {
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
     }
 
     /* These styles are for mobile */
 
     @media (max-width: 649.98px) {
-        .hide-mobile {
+        .hide-mobile, #downloadresults-1 {
             display: none;
         }
         #back_bar {
@@ -191,5 +190,9 @@
         }
         #results_pane.show-results {
             display: flex;
+        }
+        .spacy {
+            padding-top: 1px;
+            padding-bottom: 1px;
         }
     }
