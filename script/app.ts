@@ -348,7 +348,7 @@ class Program {
         
         if (results && results.length > 0) {
             var resultsText: string = this.getResultsAsText(results);
-            var blob: Blob = new Blob([resultsText], { type: 'text/csv' });
+            var blob: Blob = new Blob([resultsText], { type: 'text/plain' });
 
             if (this.blobUrl) {
                 window.URL.revokeObjectURL(this.blobUrl);

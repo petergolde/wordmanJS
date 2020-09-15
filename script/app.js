@@ -319,7 +319,7 @@ var Program = (function () {
         var saveLink = $(".download-results");
         if (results && results.length > 0) {
             var resultsText = this.getResultsAsText(results);
-            var blob = new Blob([resultsText], { type: 'text/csv' });
+            var blob = new Blob([resultsText], { type: 'text/plain' });
             if (this.blobUrl) {
                 window.URL.revokeObjectURL(this.blobUrl);
                 this.blobUrl = "";
