@@ -1,0 +1,75 @@
+{
+  "name": "WordMan",
+  "short_name": "WordMan",
+  "start_url": "https://wordman.xyz",
+  "display": "standalone",
+  "description": "WordMan is a simple tool for helping to solve word puzzle and games. It allows quick searches of dictionaries to find words matching various criteria. For example, you can search for anagrams or words matching a pattern of letters and wild cards.",
+  "lang": "en",
+  "dir": "auto",
+  "theme_color": "#418599",
+  "background_color": "#ffffff",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon-512px.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-128px.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-114px.png",
+      "sizes": "114x114",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-57px.png",
+      "sizes": "57x57",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-32px.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512px.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-maskable-128px.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/1280x800-screenshot.png",
+      "sizes": "1280x800",
+      "type": "image/png"
+    },
+    {
+      "src": "screenshots/750x1334-screenshot.png",
+      "sizes": "750x1334",
+      "type": "image/png"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "windows",
+      "url": " The URL to your app in that app store"
+    }
+  ],
+  "prefer_related_applications": false
+}
