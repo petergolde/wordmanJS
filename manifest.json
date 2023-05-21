@@ -1,7 +1,8 @@
 {
   "name": "WordMan",
   "short_name": "WordMan",
-  "start_url": "https://wordman.xyz",
+  "start_url": "https://wordman.xyz/index.html",
+  "scope": "https://wordman.xyz/index.html",
   "display": "standalone",
   "description": "WordMan is a simple tool for helping to solve word puzzle and games. It allows quick searches of dictionaries to find words matching various criteria. For example, you can search for anagrams or words matching a pattern of letters and wild cards.",
   "lang": "en",

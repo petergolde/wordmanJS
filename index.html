@@ -23,6 +23,9 @@
     <link rel="shortcut icon" sizes="32x32" href="icon-32px.png">
 
     <link rel="manifest" href="manifest.json" />
+    
+    <script>navigator.serviceWorker.register("service-worker.js")</script> 
+
     <title>WordMan</title>
 </head>
 
@@ -30,8 +33,9 @@
     <div id="entire_window">
 
         <div id="header" class="show-header">
-            <div id="banner">
-                Never fear, WordMan is here! (<a target="_blank" href="help/GeneralHelp.html">Help</a>)
+            <div id="banner" style="display:flex; justify-content: space-between;">
+                <div>Never fear, WordMan is here! (<a target="_blank" href="help/GeneralHelp.html">Help</a>)</div>
+                <div style="font-size: xx-small;"><a target="_blank" href="privacy.html">Privacy</a></div>
             </div>            
             <form id="main_form">
                 <div style="display:flex; flex-wrap:wrap;">
